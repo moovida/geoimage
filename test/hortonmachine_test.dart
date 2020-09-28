@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dart_jts/dart_jts.dart';
 import 'package:hortonmachine/hortonmachine.dart';
 import 'package:hortonmachine/src/org/hortomachine/core/utils.dart';
 import 'package:test/test.dart';
@@ -72,6 +73,17 @@ void main() {
       var file32bit = File('./test/files/dtm32float.tiff');
       var raster = SingleBandRaster(file32bit);
       raster.open();
+
+      var geoInfo = raster.geoInfo;
+
+      var worldEnvelope = geoInfo.worldEnvelope;
+      var expected =
+          Envelope(1640650.000, 1640950.000, 5139780.000, 5140020.000);
+      expect(worldEnvelope == expected, true);
+
+      expect(geoInfo.cols, 10);
+      expect(geoInfo.rows, 8);
+      expect(geoInfo.srid, 32632);
     });
     test('Test 32bit float', () {
       /*

@@ -9,12 +9,22 @@ environment:
 dependencies:
   path: ^1.7.0
 
+  dart_jts: ^0.0.6
+
   # dart_hydrologis_utils:
   #  ^0.5.3
    # path: ../dart_hydrologis_utils/
 
   # Apache 2.0
-  image: ^2.1.18
+  image: #^2.1.18
+    git:
+      url: https://github.com/brendan-duncan/image.git
+      ref: tiff_hdr_refactor
+
+  # BSD
+  vector_math: 2.0.8
+
+
 
 dev_dependencies:
   pedantic: ^1.9.0
