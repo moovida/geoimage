@@ -1,15 +1,26 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_jts/dart_jts.dart';
 import 'package:hortonmachine/src/org/hortomachine/core/utils.dart';
 import 'package:image/image.dart';
 
-/// Abstract class for regular grid rasters.
-abstract class Raster {
-  /// Open the raster accessing the file.
-  void open();
+class TiffTags {
+  static final GEOKEY_DIRECTORY_TAG = 34735;
+  static final MODEL_TRANSFORMATION_TAG = 34264;
+  static final MODEL_TIEPOINT_TAG = 33922;
+  static final MODEL_PIXELSCALE_TAG = 33550;
+  static final TAG_GDAL_NODATA = 42113;
+}
 
-  /// Get the geoinformation object.
+/// Abstract class for regular grid rasters.
+abstract class AbstractGeoRaster {
+  /// Read the raster accessing the file.
+  ///
+  /// The optional [imageIndex] defines the image to open.
+  void read([int imageIndex]);
+
+  /// Get the geoinformation object for the selected image.
   GeoInfo get geoInfo;
 
   /// Get the number of bands.
@@ -46,14 +57,14 @@ abstract class Raster {
 class GridNode {
   final int _col;
   final int _row;
-  final SingleBandRaster _raster;
+  final AbstractGeoRaster _raster;
   bool _touchesBound = false;
 
   GridNode(this._raster, this._col, this._row) {
     if (_col == 0 ||
         _row == 0 ||
-        _col == _raster._cols - 1 ||
-        _row == _raster._rows - 1) {
+        _col == _raster.geoInfo.cols - 1 ||
+        _row == _raster.geoInfo.rows - 1) {
       _touchesBound = true;
     }
   }
@@ -106,8 +117,10 @@ class GeoInfo {
   double _xResolution;
   double _yResolution;
   Envelope _worldEnvelope;
+  final TiffImage image;
+  double noValue;
 
-  GeoInfo(TiffImage image) {
+  GeoInfo(this.image) {
     _rows = image.height;
     _cols = image.width;
     // ModelTransformationTag: 34264
@@ -115,7 +128,7 @@ class GeoInfo {
     //  0.0, -30.0, 0.0, 5140020.0,
     //  0.0, 0.0, 0.0, 0.0,
     //  0.0, 0.0, 0.0, 1.0]
-    var modelTransformationTag = image.tags[34264];
+    var modelTransformationTag = image.tags[TiffTags.MODEL_TRANSFORMATION_TAG];
     if (modelTransformationTag != null) {
       var transformationMatrix = modelTransformationTag.read();
 
@@ -143,7 +156,6 @@ class GeoInfo {
       _worldEnvelope = Envelope.fromCoordinates(llCoord, urCoord);
     } else {
       // ModelTiepointTag: 33922 -> needs to be there if 34264 is not
-      // TODO
       // needs ModelPixelScaleTag: 33550 ->  = (ScaleX, ScaleY, ScaleZ)
 
       //  ModelTiepointTag (2,3):
@@ -151,18 +163,90 @@ class GeoInfo {
       //    -3683154.58      4212096.53       0
       // ModelPixelScaleTag (1,3):
       //    10000            10000            0
+      var modelPixelScaleTag = image.tags[TiffTags.MODEL_PIXELSCALE_TAG];
+      if (modelPixelScaleTag != null) {
+        var modelPixelScale = modelPixelScaleTag.read();
+        var m00 = modelPixelScale[0];
+        var m11 = -modelPixelScale[1];
+
+        var modelTiepointTag = image.tags[TiffTags.MODEL_TIEPOINT_TAG];
+        if (modelTiepointTag != null) {
+          var modelTiepoint = modelTiepointTag.read();
+          var m01 = 0.0;
+          var m02 = modelTiepoint[3];
+          var m10 = 0.0;
+          var m12 = modelTiepoint[4];
+
+          _pixelToWorldTransform = AffineTransformation.fromMatrixValues(
+              m00, m01, m02, m10, m11, m12);
+          _worldToPixelTransform = _pixelToWorldTransform.getInverse();
+
+          _xResolution = m00;
+          _yResolution = m11.abs();
+
+          var llCoord = _pixelToWorldTransform.transform(
+              Coordinate(0, 0), Coordinate.empty2D());
+          var urCoord = _pixelToWorldTransform.transform(
+              Coordinate(_cols.toDouble(), _rows.toDouble()),
+              Coordinate.empty2D());
+
+          _worldEnvelope = Envelope.fromCoordinates(llCoord, urCoord);
+        }
+      }
     }
 
     // GeoKeyDirectoryTag: 34735 -> also 'ProjectionInfoTag' and 'CoordSystemInfoTag'
-    // [1, 1, 2, 3, 1024,
-    //  0, 1, 1, 1025,
-    //  0, 1, 1, 3072,
-    //  0, 1, 32632]
-    var projInfoTag = image.tags[34735];
+    // [1, 1, 2, 3,
+    //  1024, 0, 1, 1,
+    //  1025, 0, 1, 1,
+    //  3072, 0, 1, 32632]
+
+    // [1, 1, 0, 7,
+    // 1024, 0, 1, 2,
+    // 1025, 0, 1, 2,
+    // 2048, 0, 1, 4326,
+    // 2049, 34737, 7, 0,
+    // 2054, 0, 1, 9102,
+    // 2057, 34736, 1, 2,
+    // 2059, 34736, 1, 1]
+    var projInfoTag = image.tags[TiffTags.GEOKEY_DIRECTORY_TAG];
     if (projInfoTag != null) {
-      var projInfovalues = projInfoTag.read();
-      _srid = projInfovalues[15];
+      var projInfovalues = projInfoTag.readValues();
+
+      // look for an epsg code
+      //
+      // GeographicTypeGeoKey         = 2048
+      // ProjectedCSTypeGeoKey          = 3072
+      //
+      // TODO this part needs more love and knowledge
+      for (var i = 4; i < projInfovalues.length; i += 4) {
+        var value = projInfovalues[i];
+        if (value == 2048 || value == 3072) {
+          _srid = projInfovalues[i + 3];
+          break;
+        }
+      }
     }
+
+    var gdalNovalueTag = image.tags[TiffTags.TAG_GDAL_NODATA];
+    if (gdalNovalueTag != null) {
+      var gdalNovalueBytes = gdalNovalueTag.readValues();
+      String gdalNovaleString =
+          utf8.decode(gdalNovalueBytes, allowMalformed: false).trim();
+      if (gdalNovaleString.startsWith("nan")) {
+        noValue = double.nan;
+      } else {
+        noValue = double.parse(gdalNovaleString);
+      }
+    }
+  }
+
+  bool hasTag(int key) {
+    return image.tags[key] != null;
+  }
+
+  List<dynamic> getTag(int key) {
+    return image.tags[key].read();
   }
 
   int get srid => _srid;
@@ -192,35 +276,42 @@ class GeoInfo {
   Geometry worldToPixelGeom(Geometry geom) {
     return _worldToPixelTransform.transformGeom(geom);
   }
+
+  String printTags() {
+    String tagsStr = "TAGS:\n";
+    image.tags.forEach((key, value) {
+      tagsStr += "\t$key = ${value.read()}\n";
+    });
+    return tagsStr;
+  }
 }
 
 /// A raster class representing a single band raster.
-class SingleBandRaster extends Raster {
+class SingleBandGeoRaster extends AbstractGeoRaster {
   final File _file;
   HdrImage _raster;
   GeoInfo _geoInfo;
   int _rows;
   int _cols;
+  TiffInfo _tiffInfo;
 
-  SingleBandRaster(this._file);
+  SingleBandGeoRaster(this._file);
 
   @override
-  void open() {
+  void read([int imageIndex]) {
+    if (imageIndex == null) {
+      imageIndex = 0;
+    }
     var bytes = _file.readAsBytesSync();
     var tiffDecoder = TiffDecoder();
-    _raster = tiffDecoder.decodeHdrImage(bytes);
+    _raster = tiffDecoder.decodeHdrImage(bytes, frame: imageIndex);
     assert(_raster.numChannels == 1);
 
-    var tiffInfo = tiffDecoder.info;
-    var image = tiffInfo.images[0];
+    _tiffInfo = tiffDecoder.info;
+    var image = _tiffInfo.images[imageIndex];
     _geoInfo = GeoInfo(image);
     _rows = _geoInfo.rows;
     _cols = _geoInfo.cols;
-    // image.tags.forEach((key, value) {
-    //   print(key);
-    //   print(value.read());
-    //   print("=====================");
-    // });
   }
 
   @override
@@ -264,5 +355,90 @@ class SingleBandRaster extends Raster {
   @override
   int getInt(int col, int row, [int band]) {
     return _raster.red.getInt(col, row);
+  }
+}
+
+/// A raster class representing a generic georaster.
+class GeoRaster extends AbstractGeoRaster {
+  final File _file;
+  HdrImage _raster;
+  GeoInfo _geoInfo;
+  int _rows;
+  int _cols;
+  TiffInfo _tiffInfo;
+
+  GeoRaster(this._file);
+
+  @override
+  void read([int imageIndex]) {
+    if (imageIndex == null) {
+      imageIndex = 0;
+    }
+    var bytes = _file.readAsBytesSync();
+    var tiffDecoder = TiffDecoder();
+    _raster = tiffDecoder.decodeHdrImage(bytes, frame: imageIndex);
+
+    _tiffInfo = tiffDecoder.info;
+    var image = _tiffInfo.images[imageIndex];
+    _geoInfo = GeoInfo(image);
+    _rows = _geoInfo.rows;
+    _cols = _geoInfo.cols;
+  }
+
+  @override
+  GeoInfo get geoInfo => _geoInfo;
+
+  @override
+  int get bands => _raster.numChannels;
+
+  @override
+  void loopWithFloatValue(Function colRowValueFunction) {
+    for (var r = 0; r < _rows; r++) {
+      for (var c = 0; c < _cols; c++) {
+        colRowValueFunction(c, r, getDouble(c, r));
+      }
+    }
+  }
+
+  @override
+  void loopWithIntValue(Function colRowValueFunction) {
+    for (var r = 0; r < _rows; r++) {
+      for (var c = 0; c < _cols; c++) {
+        colRowValueFunction(c, r, getInt(c, r));
+      }
+    }
+  }
+
+  @override
+  void loopWithGridNode(Function gridNodeFunction) {
+    for (var r = 0; r < _rows; r++) {
+      for (var c = 0; c < _cols; c++) {
+        gridNodeFunction(GridNode(this, c, r));
+      }
+    }
+  }
+
+  @override
+  double getDouble(int col, int row, [int band]) {
+    if (band == null || band == 0) {
+      return _raster.red.getFloat(col, row);
+    } else if (band == 1) {
+      return _raster.green.getFloat(col, row);
+    } else if (band == 2) {
+      return _raster.blue.getFloat(col, row);
+    }
+    return null;
+  }
+
+  @override
+  int getInt(int col, int row, [int band]) {
+    if (band == null || band == 0) {
+      return _raster.red.getInt(col, row);
+    } else if (band == 1) {
+      return _raster.green.getInt(col, row);
+    } else if (band == 2) {
+      return _raster.blue.getInt(col, row);
+    }
+    return null;
   }
 }

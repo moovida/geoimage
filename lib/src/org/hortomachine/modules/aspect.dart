@@ -4,7 +4,7 @@ import 'dart:math';
 
 class Aspect {
   /// The input elevation raster.
-  Raster inElev;
+  AbstractGeoRaster inElev;
 
   /// Switch to define whether create the output map in degrees (default) or radiants.
   bool doRadiants = false;
@@ -13,7 +13,7 @@ class Aspect {
   bool doRound = false;
 
   /// The map of aspect.
-  Raster outAspect;
+  AbstractGeoRaster outAspect;
 
   static final nv = HMConstants.doubleNovalue;
 
@@ -23,8 +23,11 @@ class Aspect {
       radtodeg = 1.0;
     }
 
+    double xRes = inElev.geoInfo.xRes;
+    double yRes = inElev.geoInfo.yRes;
+
     inElev.loopWithGridNode((GridNode node) {
-      double aspect = calculateAspect(node, radtodeg, doRound);
+      double aspect = calculateAspect(node, radtodeg, doRound, xRes, yRes);
 
       if (node.touchesBound) {
         //aspectIter.setSample(col, row, 0, HMConstants.shortNovalue);
@@ -47,14 +50,12 @@ class Aspect {
      * @param doRound if <code>true</code>, values are round to integer.
      * @return the value of aspect.
      */
-  static double calculateAspect(GridNode node, double radtodeg, bool doRound) {
+  static double calculateAspect(
+      GridNode node, double radtodeg, bool doRound, double xRes, double yRes) {
     double aspect = nv;
     // the value of the x and y derivative
     double aData = 0.0;
     double bData = 0.0;
-    double xRes =
-        30.0; // TODO hardcoded for test since library doesn't support reading it
-    double yRes = 30.0;
     double centralValue = node.getDouble();
     double nValue = node.getDoubleAt(Direction.N);
     double sValue = node.getDoubleAt(Direction.S);
