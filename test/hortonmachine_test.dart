@@ -564,6 +564,78 @@ void main() {
       var readNV = raster.getDouble(1439, 0);
       expect(readNV.isNaN && geoInfo.noValue.isNaN, true);
     });
+
+    test('test readLZWWithHorizontalDifferencingPredictorOn16Bits', () {
+      var tiff1 = File('./test/files/imageioext/test.tif');
+      var raster1 = GeoRaster(tiff1);
+      raster1.read();
+      var geoInfo1 = raster1.geoInfo;
+      // This image has been created from test.tif using the command:
+      // gdal_translate -OT UInt16 -co COMPRESS=LZW -co PREDICTOR=2 test.tif lzwtest.tif
+      var tiff2 = File('./test/files/imageioext/lzwtest.tif');
+      var raster2 = GeoRaster(tiff2);
+      raster2.read();
+      var geoInfo2 = raster2.geoInfo;
+
+      expect(geoInfo1.cols, geoInfo2.cols);
+      expect(geoInfo1.rows, geoInfo2.rows);
+      expect(geoInfo1.srid, geoInfo2.srid);
+
+      for (var r = 0; r < geoInfo1.rows; r++) {
+        for (var c = 0; c < geoInfo1.cols; c++) {
+          expect(raster1.getDouble(c, r), raster2.getDouble(c, r),
+              reason: "Different value in rasters at col = $c, row = $r");
+        }
+      }
+    });
+
+    test('test readDeflateWithHorizontalDifferencingPredictorOn16Bits', () {
+      var tiff1 = File('./test/files/imageioext/test.tif');
+      var raster1 = GeoRaster(tiff1);
+      raster1.read();
+      var geoInfo1 = raster1.geoInfo;
+      // This image has been created from test.tif using the command:
+      // gdal_translate -OT UInt16 -co COMPRESS=DEFLATE -co PREDICTOR=2 test.tif deflatetest.tif
+      var tiff2 = File('./test/files/imageioext/deflatetest.tif');
+      var raster2 = GeoRaster(tiff2);
+      raster2.read();
+      var geoInfo2 = raster2.geoInfo;
+
+      expect(geoInfo1.cols, geoInfo2.cols);
+      expect(geoInfo1.rows, geoInfo2.rows);
+      expect(geoInfo1.srid, geoInfo2.srid);
+
+      for (var r = 0; r < geoInfo1.rows; r++) {
+        for (var c = 0; c < geoInfo1.cols; c++) {
+          expect(raster1.getDouble(c, r), raster2.getDouble(c, r),
+              reason: "Different value in rasters at col = $c, row = $r");
+        }
+      }
+    });
+
+    test('test readDeflateWithFloatingPointPredictor', () {
+      var tiff1 = File('./test/files/imageioext/test.tif');
+      var raster1 = GeoRaster(tiff1);
+      raster1.read();
+      var geoInfo1 = raster1.geoInfo;
+      // This image has been created from test.tif using the command:
+      // gdal_translate -ot Float32 -co COMPRESS=DEFLATE -co PREDICTOR=3 test.tif deflate_predictor_3.tif
+      var tiff2 = File('./test/files/imageioext/deflate_predictor_3.tif');
+      var raster2 = GeoRaster(tiff2);
+      raster2.read();
+      var geoInfo2 = raster2.geoInfo;
+
+      expect(geoInfo1.cols, geoInfo2.cols);
+      expect(geoInfo1.rows, geoInfo2.rows);
+      expect(geoInfo1.srid, geoInfo2.srid);
+
+      for (var r = 0; r < geoInfo1.rows; r++) {
+        for (var c = 0; c < geoInfo1.cols; c++) {
+          expect(raster1.getDouble(c, r), raster2.getDouble(c, r),
+              reason: "Different value in rasters at col = $c, row = $r");
+        }
+      }
+    });
   });
 }
 
