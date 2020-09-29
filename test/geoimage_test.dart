@@ -670,6 +670,56 @@ void main() {
       expect(geoInfoJpg.prjWkt == geoInfoTiff.prjWkt, true);
     });
   });
+  group('Test esri ascii grid', () {
+    test('test asc io', () {
+      var ascFile = File('./test/files/esriasc/dtm_flanginec.asc');
+      var rasterAsc = GeoRaster(ascFile);
+      rasterAsc.read();
+      var geoInfoAsc = rasterAsc.geoInfo;
+
+      // NCOLS 355
+      // NROWS 361
+      // XLLCORNER 1637140.0
+      // YLLCORNER 5110830.0
+      // CELLSIZE 10.0
+      // NODATA_VALUE -9999
+      var expected = Envelope(
+          1637140.0, 1637140.0 + 10.0 * 355, 5110830.0, 5110830.0 + 10.0 * 361);
+      expect(geoInfoAsc.worldEnvelope == expected, true);
+      expect(geoInfoAsc.cols, 355);
+      expect(geoInfoAsc.rows, 361);
+      expect(geoInfoAsc.xRes, 10.0);
+      expect(geoInfoAsc.yRes, 10.0);
+      expect(geoInfoAsc.noValue, -9999.0);
+      expect(rasterAsc.getDouble(8, 0), 1217.385986328125);
+      expect(geoInfoAsc.srid, -1);
+      expect(
+          geoInfoAsc.prjWkt.trim(),
+          """PROJCS["Monte Mario / Italy zone 1 - Peninsular Part/Accuracy 3-4m", 
+  GEOGCS["Monte Mario", 
+    DATUM["Monte Mario", 
+      SPHEROID["International 1924", 6378388.0, 297.0, AUTHORITY["EPSG","7022"]], 
+      TOWGS84[-104.1, -49.1, -9.9, 0.971, -2.917, 0.714, -11.68], 
+      AUTHORITY["EPSG","6265"]], 
+    PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+    UNIT["degree", 0.017453292519943295], 
+    AXIS["Geodetic longitude", EAST], 
+    AXIS["Geodetic latitude", NORTH], 
+    AUTHORITY["EPSG","4265"]], 
+  PROJECTION["Transverse_Mercator"], 
+  PARAMETER["central_meridian", 9.0], 
+  PARAMETER["latitude_of_origin", 0.0], 
+  PARAMETER["scale_factor", 0.9996], 
+  PARAMETER["false_easting", 1500000.0], 
+  PARAMETER["false_northing", 0.0], 
+  UNIT["m", 1.0], 
+  AXIS["Easting", EAST], 
+  AXIS["Northing", NORTH], 
+  AUTHORITY["EPSG","30031000"]]
+"""
+              .trim());
+    });
+  });
 }
 
 const ND = GeoimageUtils.doubleNovalue;

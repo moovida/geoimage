@@ -9,6 +9,7 @@ class GeoimageUtils {
 
   static const intNovalue = -9999;
 
+  static const ASC_EXT = "asc";
   static const TIFF_EXT = "tiff";
   static const TIF_EXT = "tif";
   static const TIF_WLD_EXT = "tfw";
@@ -20,6 +21,10 @@ class GeoimageUtils {
   static bool isTiff(String imagePath) {
     return imagePath.toLowerCase().endsWith(TIF_EXT) ||
         imagePath.toLowerCase().endsWith(TIFF_EXT);
+  }
+
+  static bool isAsc(String imagePath) {
+    return imagePath.toLowerCase().endsWith(ASC_EXT);
   }
 
   static String getWorldFile(String imagePath) {
