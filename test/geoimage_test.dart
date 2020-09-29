@@ -7,6 +7,8 @@ import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/georaster.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:test/test.dart';
 
+import '../lib/src/com/hydrologis/geoimage/modules/aspect.dart';
+
 void main() {
   group('Test tiff datatypes', () {
     test('Test metadata', () {
@@ -718,6 +720,20 @@ void main() {
   AUTHORITY["EPSG","30031000"]]
 """
               .trim());
+    });
+  });
+  group('Test modules', () {
+    test('test aspect', () {
+      var ascFile = File('./test/files/esriasc/dtm_flanginec.asc');
+      var rasterAsc = GeoRaster(ascFile);
+      rasterAsc.read();
+      var aspect = Aspect()
+        ..doRadiants = false
+        ..doRound = true
+        ..inElev = rasterAsc;
+      aspect.process();
+      var outAspect = aspect.outAspect;
+      outAspect.write("/Users/hydrologis/TMP/HORTONTESTS/testaspect.asc");
     });
   });
 }

@@ -54,12 +54,12 @@ class GeoimageUtils {
     return null;
   }
 
-  static String getPrjFile(String imagePath) {
+  static String getPrjFile(String imagePath, {bool alsoIfNotExists = false}) {
     String folder = p.dirname(imagePath);
     var name = p.basenameWithoutExtension(imagePath);
     var prjPath = p.join(folder, name + ".prj");
     var prjFile = File(prjPath);
-    if (prjFile.existsSync()) {
+    if (alsoIfNotExists || prjFile.existsSync()) {
       return prjPath;
     }
     return null;
@@ -123,6 +123,10 @@ class GridNode {
       _touchesBound = true;
     }
   }
+
+  int get col => _col;
+
+  int get row => _row;
 
   bool get touchesBound => _touchesBound;
 

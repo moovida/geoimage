@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/abstractgeoimage.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/georaster.dart';
 
 class Aspect {
   /// The input elevation raster.
@@ -24,19 +25,25 @@ class Aspect {
       radtodeg = 1.0;
     }
 
-    double xRes = inElev.geoInfo.xRes;
-    double yRes = inElev.geoInfo.yRes;
+    var geoInfo = inElev.geoInfo;
+    double xRes = geoInfo.xRes;
+    double yRes = geoInfo.yRes;
+
+    outAspect = GeoRaster.ascToWrite(geoInfo.cols, geoInfo.rows, geoInfo.xRes,
+        geoInfo.worldEnvelope.getMinX(), geoInfo.worldEnvelope.getMinY(),
+        defaultValue: nv, novalue: nv, prjWkt: geoInfo.prjWkt);
 
     inElev.loopWithGridNode((GridNode node) {
-      double aspect = calculateAspect(node, radtodeg, doRound, xRes, yRes);
-
       if (node.touchesBound) {
         //aspectIter.setSample(col, row, 0, HMConstants.shortNovalue);
+        outAspect.setInt(node.col, node.row, GeoimageUtils.intNovalue);
       } else {
+        double aspect = calculateAspect(node, radtodeg, doRound, xRes, yRes);
         if (doRound) {
           //  aspectIter.setSample(col, row, 0, (short) aspect);
+          outAspect.setInt(node.col, node.row, aspect.round());
         } else {
-          //aspectIter.setSample(col, row, 0, aspect);
+          outAspect.setDouble(node.col, node.row, aspect);
         }
       }
     });

@@ -5,6 +5,8 @@ import 'package:geoimage/src/com/hydrologis/geoimage/core/geoinfo.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
 
+import '../utils.dart';
+
 /// A raster class representing a geoimage containing physical data.
 class GeoRaster extends AbstractGeoRaster {
   File _file;
@@ -30,9 +32,9 @@ class GeoRaster extends AbstractGeoRaster {
     dataList = List(rows);
     for (var i = 0; i < rows; i++) {
       if (defaultValue != null) {
-        dataList.add(List.filled(cols, defaultValue));
+        dataList[i] = List.filled(cols, defaultValue);
       } else {
-        dataList.add(List(cols));
+        dataList[i] = List(cols);
       }
     }
     writeMode = true;
@@ -172,6 +174,15 @@ NODATA_value  ${_geoInfo.noValue}""";
           });
         } finally {
           ioSink.close();
+        }
+
+        // write prj if available
+        if (geoInfo.prjWkt != null) {
+          var prjPath = GeoimageUtils.getPrjFile(path, alsoIfNotExists: true);
+          if (prjPath != null) {
+            var prjFile = File(prjPath);
+            prjFile.writeAsStringSync(geoInfo.prjWkt);
+          }
         }
       } else {
         throw UnsupportedError(
