@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dart_jts/dart_jts.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/geoimage.dart';
@@ -650,6 +651,9 @@ void main() {
       expect(geoInfoJpg.worldEnvelope == expected, true);
       expect(geoInfoJpg.cols, 4800);
       expect(geoInfoJpg.rows, 2400);
+      expect(geoInfoJpg.srid, -1);
+      expect(geoInfoJpg.prjWkt,
+          """GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.0174532925199433]]""");
     });
 
     test('test tiff and jpg', () {
@@ -663,6 +667,7 @@ void main() {
       var geoInfoTiff = rasterTiff.geoInfo;
 
       expect(geoInfoJpg.worldEnvelope == geoInfoTiff.worldEnvelope, true);
+      expect(geoInfoJpg.prjWkt == geoInfoTiff.prjWkt, true);
     });
   });
 }

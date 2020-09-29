@@ -29,15 +29,23 @@ class GeoImage extends AbstractGeoImage {
     }
     var wesnxyValues =
         GeoimageUtils.parseWorldFile(_file.path, _image.width, _image.height);
+
+    var prjWkt = GeoimageUtils.getPrjWkt(_file.path);
     if (wesnxyValues != null) {
       // has worldfile
-      _geoInfo = GeoInfo.fromValues(_image.width, _image.height,
-          wesnxyValues[4], -wesnxyValues[5], wesnxyValues[0], wesnxyValues[3]);
+      _geoInfo = GeoInfo.fromValues(
+          _image.width,
+          _image.height,
+          wesnxyValues[4],
+          -wesnxyValues[5],
+          wesnxyValues[0],
+          wesnxyValues[3],
+          prjWkt);
     } else if (tiffDecoder != null) {
       // without worldfile only tiffs can contain geoinfo
       var tiffInfo = tiffDecoder.info;
       _tiffImage = tiffInfo.images[imageIndex];
-      _geoInfo = GeoInfo(_tiffImage);
+      _geoInfo = GeoInfo(_tiffImage, prjWkt);
     } else {
       throw ArgumentError("The supplied image is not a supported geoimage.");
     }

@@ -25,10 +25,26 @@ class GeoRaster extends AbstractGeoRaster {
     var bytes = _file.readAsBytesSync();
     var tiffDecoder = TiffDecoder();
     _raster = tiffDecoder.decodeHdrImage(bytes, frame: imageIndex);
-
     _tiffInfo = tiffDecoder.info;
     _tiffImage = _tiffInfo.images[imageIndex];
-    _geoInfo = GeoInfo(_tiffImage);
+
+    // even in this case there might be worldfile info. In case use them.
+    var wesnxyValues =
+        GeoimageUtils.parseWorldFile(_file.path, _raster.width, _raster.height);
+    var prjWkt = GeoimageUtils.getPrjWkt(_file.path);
+    if (wesnxyValues != null) {
+      // has worldfile
+      _geoInfo = GeoInfo.fromValues(
+          _raster.width,
+          _raster.height,
+          wesnxyValues[4],
+          -wesnxyValues[5],
+          wesnxyValues[0],
+          wesnxyValues[3],
+          prjWkt);
+    } else {
+      _geoInfo = GeoInfo(_tiffImage);
+    }
     _rows = _geoInfo.rows;
     _cols = _geoInfo.cols;
   }

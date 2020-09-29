@@ -23,9 +23,10 @@ class GeoInfo {
   double noValue;
 
   GeoInfo.fromValues(int width, int height, double xScale, double yScale,
-      double xMin, double yMax) {
+      double xMin, double yMax, String prjWkt) {
     _rows = height;
     _cols = width;
+    _prjWkt = prjWkt;
 
     //  |  xScale      0  dx | => m00, m01, m02
     //  |  0      yScale  dy | => m10, m11, m12
@@ -51,7 +52,8 @@ class GeoInfo {
     _worldEnvelope = Envelope.fromCoordinates(llCoord, urCoord);
   }
 
-  GeoInfo(TiffImage image) {
+  GeoInfo(TiffImage image, [String prjWkt]) {
+    _prjWkt = prjWkt;
     _rows = image.height;
     _cols = image.width;
     // ModelTransformationTag: 34264

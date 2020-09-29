@@ -49,6 +49,25 @@ class GeoimageUtils {
     return null;
   }
 
+  static String getPrjFile(String imagePath) {
+    String folder = p.dirname(imagePath);
+    var name = p.basenameWithoutExtension(imagePath);
+    var prjPath = p.join(folder, name + ".prj");
+    var prjFile = File(prjPath);
+    if (prjFile.existsSync()) {
+      return prjPath;
+    }
+    return null;
+  }
+
+  static String getPrjWkt(String imagePath) {
+    String path = getPrjFile(imagePath);
+    if (path != null) {
+      return File(path).readAsStringSync();
+    }
+    return null;
+  }
+
   static List<double> parseWorldFile(String imagePath, int width, int height) {
     var worldFile = getWorldFile(imagePath);
     if (worldFile == null) {
