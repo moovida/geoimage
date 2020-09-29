@@ -8,16 +8,50 @@ import 'package:image/image.dart';
 class GeoInfo {
   AffineTransformation _pixelToWorldTransform;
   AffineTransformation _worldToPixelTransform;
+
+  /// The projection epsg code. This or [prjWkt] need to be available.
   int _srid = -1;
+
+  /// The projection wkt format. This or [srid] need to be available.
+  String _prjWkt;
+
   int _cols;
   int _rows;
   double _xResolution;
   double _yResolution;
   Envelope _worldEnvelope;
-  final TiffImage image;
   double noValue;
 
-  GeoInfo(this.image) {
+  GeoInfo.fromValues(int width, int height, double xScale, double yScale,
+      double xMin, double yMax) {
+    _rows = height;
+    _cols = width;
+
+    //  |  xScale      0  dx | => m00, m01, m02
+    //  |  0      yScale  dy | => m10, m11, m12
+    //  |  0           0   1 |
+    var m00 = xScale;
+    var m01 = 0.0;
+    var m02 = xMin;
+    var m10 = 0.0;
+    var m11 = yScale;
+    var m12 = yMax;
+    _pixelToWorldTransform =
+        AffineTransformation.fromMatrixValues(m00, m01, m02, m10, m11, m12);
+    _worldToPixelTransform = _pixelToWorldTransform.getInverse();
+
+    _xResolution = m00;
+    _yResolution = m11.abs();
+
+    var llCoord = _pixelToWorldTransform.transform(
+        Coordinate(0, 0), Coordinate.empty2D());
+    var urCoord = _pixelToWorldTransform.transform(
+        Coordinate(_cols.toDouble(), _rows.toDouble()), Coordinate.empty2D());
+
+    _worldEnvelope = Envelope.fromCoordinates(llCoord, urCoord);
+  }
+
+  GeoInfo(TiffImage image) {
     _rows = image.height;
     _cols = image.width;
     // ModelTransformationTag: 34264
@@ -138,15 +172,9 @@ class GeoInfo {
     }
   }
 
-  bool hasTag(int key) {
-    return image.tags[key] != null;
-  }
-
-  List<dynamic> getTag(int key) {
-    return image.tags[key].read();
-  }
-
   int get srid => _srid;
+
+  String get prjWkt => _prjWkt;
 
   int get rows => _rows;
 
@@ -172,13 +200,5 @@ class GeoInfo {
 
   Geometry worldToPixelGeom(Geometry geom) {
     return _worldToPixelTransform.transformGeom(geom);
-  }
-
-  String printTags() {
-    String tagsStr = "TAGS:\n";
-    image.tags.forEach((key, value) {
-      tagsStr += "\t$key = ${value.read()}\n";
-    });
-    return tagsStr;
   }
 }

@@ -13,6 +13,15 @@ abstract class AbstractGeoImage {
   /// Get the number of bands.
   int get bands;
 
+  /// Check if the image has tags (tiff tags).
+  bool hasTags();
+
+  /// Get the tag values for a given tag key.
+  List<int> getTag(int key);
+}
+
+/// Abstract class for regular grid rasters with physical data.
+abstract class AbstractGeoRaster extends AbstractGeoImage {
   /// Get the raster value as double at a given position and (optional) band.
   double getDouble(int col, int row, [int band]);
 

@@ -1,18 +1,16 @@
 import 'dart:io';
 
 import 'package:geoimage/geoimage.dart';
-import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/geoinfo.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/geoinfo.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
 
 /// A raster class representing a generic geoimage.
 class GeoImage extends AbstractGeoImage {
   final File _file;
-  HdrImage _raster;
+  Image _image;
   GeoInfo _geoInfo;
-  int _rows;
-  int _cols;
-  TiffInfo _tiffInfo;
+  TiffImage _tiffImage;
 
   GeoImage(this._file);
 
@@ -22,70 +20,48 @@ class GeoImage extends AbstractGeoImage {
       imageIndex = 0;
     }
     var bytes = _file.readAsBytesSync();
-    var tiffDecoder = TiffDecoder();
-    _raster = tiffDecoder.decodeHdrImage(bytes, frame: imageIndex);
-
-    _tiffInfo = tiffDecoder.info;
-    var image = _tiffInfo.images[imageIndex];
-    _geoInfo = GeoInfo(image);
-    _rows = _geoInfo.rows;
-    _cols = _geoInfo.cols;
+    TiffDecoder tiffDecoder;
+    if (GeoimageUtils.isTiff(_file.path)) {
+      tiffDecoder = TiffDecoder();
+      _image = tiffDecoder.decodeImage(bytes);
+    } else {
+      _image = decodeImage(bytes);
+    }
+    var ewsnxyValues =
+        GeoimageUtils.parseWorldFile(_file.path, _image.width, _image.height);
+    if (ewsnxyValues != null) {
+      // has worldfile
+      _geoInfo = GeoInfo.fromValues(_image.width, _image.height,
+          ewsnxyValues[4], -ewsnxyValues[5], ewsnxyValues[1], ewsnxyValues[3]);
+    } else if (tiffDecoder != null) {
+      // without worldfile only tiffs can contain geoinfo
+      var tiffInfo = tiffDecoder.info;
+      _tiffImage = tiffInfo.images[imageIndex];
+      _geoInfo = GeoInfo(_tiffImage);
+    } else {
+      throw ArgumentError("The supplied image is not a supported geoimage.");
+    }
   }
 
   @override
   GeoInfo get geoInfo => _geoInfo;
 
   @override
-  int get bands => _raster.numberOfChannels;
+  int get bands => _image.numberOfChannels;
 
   @override
-  void loopWithFloatValue(Function colRowValueFunction) {
-    for (var r = 0; r < _rows; r++) {
-      for (var c = 0; c < _cols; c++) {
-        colRowValueFunction(c, r, getDouble(c, r));
+  List<int> getTag(int key) {
+    if (_tiffImage != null && _tiffImage.tags != null) {
+      var tag = _tiffImage.tags[key];
+      if (tag != null) {
+        return tag.readValues();
       }
-    }
-  }
-
-  @override
-  void loopWithIntValue(Function colRowValueFunction) {
-    for (var r = 0; r < _rows; r++) {
-      for (var c = 0; c < _cols; c++) {
-        colRowValueFunction(c, r, getInt(c, r));
-      }
-    }
-  }
-
-  @override
-  void loopWithGridNode(Function gridNodeFunction) {
-    for (var r = 0; r < _rows; r++) {
-      for (var c = 0; c < _cols; c++) {
-        gridNodeFunction(GridNode(this, c, r));
-      }
-    }
-  }
-
-  @override
-  double getDouble(int col, int row, [int band]) {
-    if (band == null || band == 0) {
-      return _raster.red.getFloat(col, row);
-    } else if (band == 1) {
-      return _raster.green.getFloat(col, row);
-    } else if (band == 2) {
-      return _raster.blue.getFloat(col, row);
     }
     return null;
   }
 
   @override
-  int getInt(int col, int row, [int band]) {
-    if (band == null || band == 0) {
-      return _raster.red.getInt(col, row);
-    } else if (band == 1) {
-      return _raster.green.getInt(col, row);
-    } else if (band == 2) {
-      return _raster.blue.getInt(col, row);
-    }
-    return null;
+  bool hasTags() {
+    return _tiffImage != null && _tiffImage.tags != null ? true : false;
   }
 }

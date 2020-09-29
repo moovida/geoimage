@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dart_jts/dart_jts.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/geoimage.dart';
-import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/singleband.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/georaster.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:test/test.dart';
 
@@ -72,7 +72,7 @@ void main() {
 
       */
       var file32bit = File('./test/files/dtm32float.tiff');
-      var raster = SingleBandGeoImage(file32bit);
+      var raster = GeoRaster(file32bit);
       raster.read();
 
       var geoInfo = raster.geoInfo;
@@ -150,7 +150,7 @@ void main() {
 
       */
       var file32bit = File('./test/files/dtm32float.tiff');
-      var raster = SingleBandGeoImage(file32bit);
+      var raster = GeoRaster(file32bit);
       raster.read();
       raster.loopWithFloatValue((col, row, value) {
         expect(value, mapData[row][col]);
@@ -219,7 +219,7 @@ void main() {
         Band 1 Block=10x8 Type=Float64, ColorInterp=Gray
       */
       var file64bit = File('./test/files/dtm64float.tiff');
-      var raster = SingleBandGeoImage(file64bit);
+      var raster = GeoRaster(file64bit);
       raster.read();
       raster.loopWithFloatValue((col, row, value) {
         expect(value, mapData[row][col]);
@@ -289,7 +289,7 @@ void main() {
           NoData Value=-2147483648
       */
       var file32int = File('./test/files/tca32int.tiff');
-      var raster = SingleBandGeoImage(file32int);
+      var raster = GeoRaster(file32int);
       raster.read();
       raster.loopWithIntValue((col, row, value) {
         expect(value, tcaData[row][col]);
@@ -359,7 +359,7 @@ void main() {
           NoData Value=-32768
       */
       var file16int = File('./test/files/flow16int.tiff');
-      var raster = SingleBandGeoImage(file16int);
+      var raster = GeoRaster(file16int);
       raster.read();
       raster.loopWithIntValue((col, row, value) {
         var expected = flowData[row][col];
@@ -524,7 +524,6 @@ void main() {
       var geoInfo = raster.geoInfo;
       expect(geoInfo.cols, 30);
       expect(geoInfo.rows, 26);
-      print(geoInfo.printTags());
       expect(geoInfo.srid, 26921);
 
       raster.read(1);
@@ -555,7 +554,7 @@ void main() {
 
     test('test empty tiles tiff', () {
       var tiff = File('./test/files/imageioext/emptyTiles.tif');
-      var raster = GeoImage(tiff);
+      var raster = GeoRaster(tiff);
       raster.read();
       var geoInfo = raster.geoInfo;
       expect(geoInfo.cols, 1440);
@@ -568,13 +567,13 @@ void main() {
 
     test('test readLZWWithHorizontalDifferencingPredictorOn16Bits', () {
       var tiff1 = File('./test/files/imageioext/test.tif');
-      var raster1 = GeoImage(tiff1);
+      var raster1 = GeoRaster(tiff1);
       raster1.read();
       var geoInfo1 = raster1.geoInfo;
       // This image has been created from test.tif using the command:
       // gdal_translate -OT UInt16 -co COMPRESS=LZW -co PREDICTOR=2 test.tif lzwtest.tif
       var tiff2 = File('./test/files/imageioext/lzwtest.tif');
-      var raster2 = GeoImage(tiff2);
+      var raster2 = GeoRaster(tiff2);
       raster2.read();
       var geoInfo2 = raster2.geoInfo;
 
@@ -592,13 +591,13 @@ void main() {
 
     test('test readDeflateWithHorizontalDifferencingPredictorOn16Bits', () {
       var tiff1 = File('./test/files/imageioext/test.tif');
-      var raster1 = GeoImage(tiff1);
+      var raster1 = GeoRaster(tiff1);
       raster1.read();
       var geoInfo1 = raster1.geoInfo;
       // This image has been created from test.tif using the command:
       // gdal_translate -OT UInt16 -co COMPRESS=DEFLATE -co PREDICTOR=2 test.tif deflatetest.tif
       var tiff2 = File('./test/files/imageioext/deflatetest.tif');
-      var raster2 = GeoImage(tiff2);
+      var raster2 = GeoRaster(tiff2);
       raster2.read();
       var geoInfo2 = raster2.geoInfo;
 
@@ -616,13 +615,13 @@ void main() {
 
     test('test readDeflateWithFloatingPointPredictor', () {
       var tiff1 = File('./test/files/imageioext/test.tif');
-      var raster1 = GeoImage(tiff1);
+      var raster1 = GeoRaster(tiff1);
       raster1.read();
       var geoInfo1 = raster1.geoInfo;
       // This image has been created from test.tif using the command:
       // gdal_translate -ot Float32 -co COMPRESS=DEFLATE -co PREDICTOR=3 test.tif deflate_predictor_3.tif
       var tiff2 = File('./test/files/imageioext/deflate_predictor_3.tif');
-      var raster2 = GeoImage(tiff2);
+      var raster2 = GeoRaster(tiff2);
       raster2.read();
       var geoInfo2 = raster2.geoInfo;
 
@@ -640,8 +639,8 @@ void main() {
   });
 }
 
-const ND = HMConstants.doubleNovalue;
-const NI = HMConstants.intNovalue;
+const ND = GeoimageUtils.doubleNovalue;
+const NI = GeoimageUtils.intNovalue;
 
 List<List<double>> mapData = [
   //

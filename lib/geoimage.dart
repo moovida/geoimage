@@ -3,4 +3,4 @@
 /// More dartdocs go here.
 library hortonmachine;
 
-export 'src/com/hydrologis/geoimage/core/geoimage.dart';
+export 'src/com/hydrologis/geoimage/core/abstractgeoimage.dart';

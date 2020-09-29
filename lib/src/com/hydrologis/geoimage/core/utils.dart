@@ -1,11 +1,77 @@
+import 'dart:io';
 import 'dart:math' as math;
+import 'package:path/path.dart' as p;
 
 import 'package:geoimage/geoimage.dart';
 
-class HMConstants {
+class GeoimageUtils {
   static const doubleNovalue = -9999.0;
 
   static const intNovalue = -9999;
+
+  static const TIFF_EXT = "tiff";
+  static const TIF_EXT = "tif";
+  static const TIF_WLD_EXT = "tfw";
+  static const JPG_EXT = "jpg";
+  static const JPG_WLD_EXT = "jgw";
+  static const PNG_EXT = "png";
+  static const PNG_WLD_EXT = "pgw";
+
+  static bool isTiff(String imagePath) {
+    return imagePath.toLowerCase().endsWith(TIF_EXT) ||
+        imagePath.toLowerCase().endsWith(TIFF_EXT);
+  }
+
+  static String getWorldFile(String imagePath) {
+    String folder = p.dirname(imagePath);
+    var name = p.basenameWithoutExtension(imagePath);
+    var ext;
+    var lastDot = imagePath.lastIndexOf(".");
+    if (lastDot > 0) {
+      ext = imagePath.substring(lastDot + 1);
+    } else {}
+    var wldExt;
+    if (ext == JPG_EXT) {
+      wldExt = JPG_WLD_EXT;
+    } else if (ext == PNG_EXT) {
+      wldExt = PNG_WLD_EXT;
+    } else if (ext == TIF_EXT || ext == TIFF_EXT) {
+      wldExt = TIF_WLD_EXT;
+    } else {
+      return null;
+    }
+
+    var wldPath = p.join(folder, name + "." + wldExt);
+    var wldFile = File(wldPath);
+    if (wldFile.existsSync()) {
+      return wldPath;
+    }
+    return null;
+  }
+
+  static List<double> parseWorldFile(String imagePath, int width, int height) {
+    var worldFile = getWorldFile(imagePath);
+    if (worldFile == null) {
+      return null;
+    }
+    var tfwList = readFileToList(worldFile);
+    var xRes = double.parse(tfwList[0]);
+    var yRes = -double.parse(tfwList[3]);
+    var xExtent = width * xRes;
+    var yExtent = height * yRes;
+
+    var west = double.parse(tfwList[4]) - xRes / 2.0;
+    var north = double.parse(tfwList[5]) + yRes / 2.0;
+    var east = west + xExtent;
+    var south = north - yExtent;
+    return <double>[west, east, south, north, xRes, yRes];
+  }
+
+  static List<String> readFileToList(String filePath) {
+    var fileText = File(filePath).readAsStringSync();
+    List<String> split = fileText.split('\n');
+    return split;
+  }
 }
 
 enum Direction { E, EN, N, NW, W, WS, S, SE }
@@ -22,7 +88,7 @@ class TiffTags {
 class GridNode {
   final int _col;
   final int _row;
-  final AbstractGeoImage _raster;
+  final AbstractGeoRaster _raster;
   bool _touchesBound = false;
 
   GridNode(this._raster, this._col, this._row) {

@@ -1,11 +1,11 @@
 import 'dart:math';
 
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
-import 'package:geoimage/src/com/hydrologis/geoimage/core/geoimage.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/abstractgeoimage.dart';
 
 class Aspect {
   /// The input elevation raster.
-  AbstractGeoImage inElev;
+  AbstractGeoRaster inElev;
 
   /// Switch to define whether create the output map in degrees (default) or radiants.
   bool doRadiants = false;
@@ -14,9 +14,9 @@ class Aspect {
   bool doRound = false;
 
   /// The map of aspect.
-  AbstractGeoImage outAspect;
+  AbstractGeoRaster outAspect;
 
-  static final nv = HMConstants.doubleNovalue;
+  static final nv = GeoimageUtils.doubleNovalue;
 
   void process() {
     var radtodeg = NumericsUtilities.RADTODEG;
@@ -139,6 +139,6 @@ class Aspect {
   }
 
   static bool isNovalue(double value) {
-    return HMConstants.doubleNovalue == value;
+    return GeoimageUtils.doubleNovalue == value;
   }
 }
