@@ -1,3 +1,6 @@
-A dart test on hortonmachine bits and pieces.
+A geo-wrapper around the image project (https://pub.dev/packages/image)
 
-This is a very early stage, nothing usable here.
+This is supposed to provide information about the geographic boundaries of the image, the resolution, the projection.
+
+In case of tiff and esrii ascii grid also physical data are accessible.
+
