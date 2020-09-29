@@ -1,10 +1,11 @@
-import 'package:hortonmachine/hortonmachine.dart';
-import 'package:hortonmachine/src/org/hortomachine/core/utils.dart';
 import 'dart:math';
+
+import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/geoimage.dart';
 
 class Aspect {
   /// The input elevation raster.
-  AbstractGeoRaster inElev;
+  AbstractGeoImage inElev;
 
   /// Switch to define whether create the output map in degrees (default) or radiants.
   bool doRadiants = false;
@@ -13,7 +14,7 @@ class Aspect {
   bool doRound = false;
 
   /// The map of aspect.
-  AbstractGeoRaster outAspect;
+  AbstractGeoImage outAspect;
 
   static final nv = HMConstants.doubleNovalue;
 

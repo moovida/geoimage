@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_jts/dart_jts.dart';
-import 'package:hortonmachine/src/org/hortomachine/core/utils.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
 
 class TiffTags {
@@ -14,7 +14,7 @@ class TiffTags {
 }
 
 /// Abstract class for regular grid rasters.
-abstract class AbstractGeoRaster {
+abstract class AbstractGeoImage {
   /// Read the raster accessing the file.
   ///
   /// The optional [imageIndex] defines the image to open.
@@ -54,10 +54,11 @@ abstract class AbstractGeoRaster {
   void loopWithGridNode(Function gridNodeFunction);
 }
 
+/// A node of a regular grid. Helps to access neighbour cells.
 class GridNode {
   final int _col;
   final int _row;
-  final AbstractGeoRaster _raster;
+  final AbstractGeoImage _raster;
   bool _touchesBound = false;
 
   GridNode(this._raster, this._col, this._row) {
@@ -287,7 +288,7 @@ class GeoInfo {
 }
 
 /// A raster class representing a single band raster.
-class SingleBandGeoRaster extends AbstractGeoRaster {
+class SingleBandGeoImage extends AbstractGeoImage {
   final File _file;
   HdrImage _raster;
   GeoInfo _geoInfo;
@@ -295,7 +296,7 @@ class SingleBandGeoRaster extends AbstractGeoRaster {
   int _cols;
   TiffInfo _tiffInfo;
 
-  SingleBandGeoRaster(this._file);
+  SingleBandGeoImage(this._file);
 
   @override
   void read([int imageIndex]) {
@@ -305,7 +306,7 @@ class SingleBandGeoRaster extends AbstractGeoRaster {
     var bytes = _file.readAsBytesSync();
     var tiffDecoder = TiffDecoder();
     _raster = tiffDecoder.decodeHdrImage(bytes, frame: imageIndex);
-    assert(_raster.numChannels == 1);
+    assert(_raster.numberOfChannels == 1);
 
     _tiffInfo = tiffDecoder.info;
     var image = _tiffInfo.images[imageIndex];
@@ -359,7 +360,7 @@ class SingleBandGeoRaster extends AbstractGeoRaster {
 }
 
 /// A raster class representing a generic georaster.
-class GeoRaster extends AbstractGeoRaster {
+class GeoImage extends AbstractGeoImage {
   final File _file;
   HdrImage _raster;
   GeoInfo _geoInfo;
@@ -367,7 +368,7 @@ class GeoRaster extends AbstractGeoRaster {
   int _cols;
   TiffInfo _tiffInfo;
 
-  GeoRaster(this._file);
+  GeoImage(this._file);
 
   @override
   void read([int imageIndex]) {
@@ -389,7 +390,7 @@ class GeoRaster extends AbstractGeoRaster {
   GeoInfo get geoInfo => _geoInfo;
 
   @override
-  int get bands => _raster.numChannels;
+  int get bands => _raster.numberOfChannels;
 
   @override
   void loopWithFloatValue(Function colRowValueFunction) {

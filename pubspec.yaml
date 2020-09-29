@@ -1,6 +1,6 @@
-name: hortonmachine
-description: A starting point for Dart libraries or applications.
-# version: 1.0.0
+name: geoimage
+description: A geo-wrapper around the image project (https://pub.dev/packages/image)
+version: 0.1.0
 # homepage: https://www.example.com
 
 environment:
@@ -11,19 +11,11 @@ dependencies:
 
   dart_jts: ^0.0.6
 
-  # dart_hydrologis_utils:
-  #  ^0.5.3
-   # path: ../dart_hydrologis_utils/
-
   # Apache 2.0
   image: #^2.1.18
     git:
       url: https://github.com/brendan-duncan/image.git
       ref: tiff_hdr_refactor
-
-  # BSD
-  vector_math: 2.0.8
-
 
 
 dev_dependencies:
