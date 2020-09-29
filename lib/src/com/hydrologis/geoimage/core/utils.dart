@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:geoimage/geoimage.dart';
+
 class HMConstants {
   static const doubleNovalue = -9999.0;
 
@@ -7,6 +9,68 @@ class HMConstants {
 }
 
 enum Direction { E, EN, N, NW, W, WS, S, SE }
+
+class TiffTags {
+  static final GEOKEY_DIRECTORY_TAG = 34735;
+  static final MODEL_TRANSFORMATION_TAG = 34264;
+  static final MODEL_TIEPOINT_TAG = 33922;
+  static final MODEL_PIXELSCALE_TAG = 33550;
+  static final TAG_GDAL_NODATA = 42113;
+}
+
+/// A node of a regular grid. Helps to access neighbour cells.
+class GridNode {
+  final int _col;
+  final int _row;
+  final AbstractGeoImage _raster;
+  bool _touchesBound = false;
+
+  GridNode(this._raster, this._col, this._row) {
+    if (_col == 0 ||
+        _row == 0 ||
+        _col == _raster.geoInfo.cols - 1 ||
+        _row == _raster.geoInfo.rows - 1) {
+      _touchesBound = true;
+    }
+  }
+
+  bool get touchesBound => _touchesBound;
+
+  double getDouble() {
+    return _raster.getDouble(_col, _row);
+  }
+
+  double getDoubleAt(Direction direction) {
+    var value;
+    switch (direction) {
+      case Direction.NW:
+        value = _raster.getDouble(_col - 1, _row - 1);
+        break;
+      case Direction.N:
+        value = _raster.getDouble(_col, _row - 1);
+        break;
+      case Direction.EN:
+        value = _raster.getDouble(_col + 1, _row - 1);
+        break;
+      case Direction.E:
+        value = _raster.getDouble(_col + 1, _row);
+        break;
+      case Direction.SE:
+        value = _raster.getDouble(_col + 1, _row + 1);
+        break;
+      case Direction.S:
+        value = _raster.getDouble(_col, _row + 1);
+        break;
+      case Direction.WS:
+        value = _raster.getDouble(_col - 1, _row + 1);
+        break;
+      case Direction.W:
+        value = _raster.getDouble(_col - 1, _row);
+        break;
+    }
+    return value;
+  }
+}
 
 /// Class to help out with numeric issues, mostly due to floating point usage.
 ///

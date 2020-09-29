@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:dart_jts/dart_jts.dart';
-import 'package:geoimage/geoimage.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/geoimage.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/singleband.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:test/test.dart';
 
