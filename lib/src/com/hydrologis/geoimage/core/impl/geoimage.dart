@@ -27,12 +27,12 @@ class GeoImage extends AbstractGeoImage {
     } else {
       _image = decodeImage(bytes);
     }
-    var ewsnxyValues =
+    var wesnxyValues =
         GeoimageUtils.parseWorldFile(_file.path, _image.width, _image.height);
-    if (ewsnxyValues != null) {
+    if (wesnxyValues != null) {
       // has worldfile
       _geoInfo = GeoInfo.fromValues(_image.width, _image.height,
-          ewsnxyValues[4], -ewsnxyValues[5], ewsnxyValues[1], ewsnxyValues[3]);
+          wesnxyValues[4], -wesnxyValues[5], wesnxyValues[0], wesnxyValues[3]);
     } else if (tiffDecoder != null) {
       // without worldfile only tiffs can contain geoinfo
       var tiffInfo = tiffDecoder.info;

@@ -637,6 +637,34 @@ void main() {
       }
     });
   });
+
+  group('Test worldimages', () {
+    test('test jpg', () {
+      var jpgFile = File('./test/files/worldimage/earthlights.jpg');
+      var rasterJpg = GeoImage(jpgFile);
+      rasterJpg.read();
+      var geoInfoJpg = rasterJpg.geoInfo;
+
+      var expected =
+          Envelope(-180.0000000, 180.0000000, -90.0000000, 90.0000000);
+      expect(geoInfoJpg.worldEnvelope == expected, true);
+      expect(geoInfoJpg.cols, 4800);
+      expect(geoInfoJpg.rows, 2400);
+    });
+
+    test('test tiff and jpg', () {
+      var jpgFile = File('./test/files/worldimage/earthlights.jpg');
+      var rasterJpg = GeoImage(jpgFile);
+      rasterJpg.read();
+      var geoInfoJpg = rasterJpg.geoInfo;
+      var tiffFile = File('./test/files/worldimage/earthlights.tiff');
+      var rasterTiff = GeoImage(tiffFile);
+      rasterTiff.read();
+      var geoInfoTiff = rasterTiff.geoInfo;
+
+      expect(geoInfoJpg.worldEnvelope == geoInfoTiff.worldEnvelope, true);
+    });
+  });
 }
 
 const ND = GeoimageUtils.doubleNovalue;
