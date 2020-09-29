@@ -5,20 +5,42 @@ import 'package:geoimage/src/com/hydrologis/geoimage/core/geoinfo.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
 
-import '../utils.dart';
-
 /// A raster class representing a geoimage containing physical data.
 class GeoRaster extends AbstractGeoRaster {
-  final File _file;
+  File _file;
   HdrImage _raster;
   GeoInfo _geoInfo;
   int _rows;
   int _cols;
   TiffInfo _tiffInfo;
   TiffImage _tiffImage;
-  List<List<double>> dataList;
+  List<List<num>> dataList;
+  bool isEsriAsc = false;
+  bool isTiff = false;
+  bool writeMode = false;
 
   GeoRaster(this._file);
+
+  GeoRaster.ascToWrite(
+      int cols, int rows, double res, double xLLCorner, double yLLCorner,
+      {num defaultValue, double novalue, String prjWkt}) {
+    if (novalue == null) {
+      novalue = -9999.0;
+    }
+    dataList = List(rows);
+    for (var i = 0; i < rows; i++) {
+      if (defaultValue != null) {
+        dataList.add(List.filled(cols, defaultValue));
+      } else {
+        dataList.add(List(cols));
+      }
+    }
+    writeMode = true;
+    isEsriAsc = true;
+    _geoInfo = GeoInfo.fromValues(
+        cols, rows, res, -res, xLLCorner, yLLCorner + res * rows, prjWkt);
+    _geoInfo.noValue = novalue;
+  }
 
   @override
   void read([int imageIndex]) {
@@ -53,6 +75,7 @@ class GeoRaster extends AbstractGeoRaster {
       }
       _rows = _geoInfo.rows;
       _cols = _geoInfo.cols;
+      isTiff = true;
     } else if (GeoimageUtils.isAsc(_file.path)) {
       var prjWkt = GeoimageUtils.getPrjWkt(_file.path);
       var fileLines = GeoimageUtils.readFileToList(_file.path);
@@ -121,6 +144,41 @@ class GeoRaster extends AbstractGeoRaster {
       _rows = _geoInfo.rows;
       _cols = _geoInfo.cols;
       _geoInfo.noValue = novalue;
+      isEsriAsc = true;
+    }
+  }
+
+  @override
+  void write(String path) {
+    if (writeMode) {
+      if (isEsriAsc) {
+        var outFile = File(path);
+        if (outFile.existsSync()) {
+          outFile.deleteSync();
+        }
+        var header = """
+ncols         ${_geoInfo.cols}
+nrows         ${_geoInfo.rows}
+xllcorner     ${_geoInfo.worldEnvelope.getMinX()}
+yllcorner     ${_geoInfo.worldEnvelope.getMinY()}
+cellsize      ${_geoInfo.xRes}
+NODATA_value  ${_geoInfo.noValue}""";
+        var ioSink = outFile.openWrite(mode: FileMode.append);
+        try {
+          ioSink.writeln(header);
+          dataList.forEach((row) {
+            ioSink.writeAll(row, " ");
+            ioSink.write("\n");
+          });
+        } finally {
+          ioSink.close();
+        }
+      } else {
+        throw UnsupportedError(
+            "Only writing of esri asc grids is supported right now.");
+      }
+    } else {
+      throw StateError("This raster is not in write mode.");
     }
   }
 
@@ -159,7 +217,7 @@ class GeoRaster extends AbstractGeoRaster {
 
   @override
   double getDouble(int col, int row, [int band]) {
-    if (dataList != null) {
+    if (isEsriAsc) {
       return dataList[row][col];
     } else {
       if (band == null || band == 0) {
@@ -175,7 +233,7 @@ class GeoRaster extends AbstractGeoRaster {
 
   @override
   int getInt(int col, int row, [int band]) {
-    if (dataList != null) {
+    if (isEsriAsc) {
       return dataList[row][col].toInt();
     } else {
       if (band == null || band == 0) {
@@ -186,6 +244,24 @@ class GeoRaster extends AbstractGeoRaster {
         return _raster.blue.getInt(col, row);
       }
       return null;
+    }
+  }
+
+  @override
+  void setDouble(int col, int row, double value, [int band]) {
+    if (isEsriAsc) {
+      dataList[row][col] = value;
+    } else {
+      throw UnsupportedError("Only esri asc types are writable");
+    }
+  }
+
+  @override
+  void setInt(int col, int row, int value, [int band]) {
+    if (isEsriAsc) {
+      dataList[row][col] = value.toDouble();
+    } else {
+      throw UnsupportedError("Only esri asc types are writable");
     }
   }
 

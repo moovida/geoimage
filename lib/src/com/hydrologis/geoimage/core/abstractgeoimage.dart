@@ -25,8 +25,14 @@ abstract class AbstractGeoRaster extends AbstractGeoImage {
   /// Get the raster value as double at a given position and (optional) band.
   double getDouble(int col, int row, [int band]);
 
+  /// Set the raster value as double at a given position and (optional) band.
+  void setDouble(int col, int row, double value, [int band]);
+
   /// Get the raster value as int at a given position and (optional) band.
   int getInt(int col, int row, [int band]);
+
+  /// Set the raster value as int at a given position and (optional) band.
+  void setInt(int col, int row, int value, [int band]);
 
   /// Loop over a raster using a function of type:
   /// (col, row, floatvalue) {
@@ -48,4 +54,7 @@ abstract class AbstractGeoRaster extends AbstractGeoImage {
   /// }
   ///
   void loopWithGridNode(Function gridNodeFunction);
+
+  /// Write a raster to file.
+  void write(String path);
 }
