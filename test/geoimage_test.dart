@@ -722,20 +722,20 @@ void main() {
               .trim());
     });
   });
-  group('Test modules', () {
-    test('test aspect', () {
-      var ascFile = File('./test/files/esriasc/dtm_flanginec.asc');
-      var rasterAsc = GeoRaster(ascFile);
-      rasterAsc.read();
-      var aspect = Aspect()
-        ..doRadiants = false
-        ..doRound = true
-        ..inElev = rasterAsc;
-      aspect.process();
-      var outAspect = aspect.outAspect;
-      outAspect.write("/Users/hydrologis/TMP/HORTONTESTS/testaspect.asc");
-    });
-  });
+  // group('Test modules', () {
+  //   test('test aspect', () {
+  //     var ascFile = File('./test/files/esriasc/dtm_flanginec.asc');
+  //     var rasterAsc = GeoRaster(ascFile);
+  //     rasterAsc.read();
+  //     var aspect = Aspect()
+  //       ..doRadiants = false
+  //       ..doRound = true
+  //       ..inElev = rasterAsc;
+  //     aspect.process();
+  //     var outAspect = aspect.outAspect;
+  //     outAspect.write("/Users/hydrologis/TMP/HORTONTESTS/testaspect.asc");
+  //   });
+  // });
 }
 
 const ND = GeoimageUtils.doubleNovalue;

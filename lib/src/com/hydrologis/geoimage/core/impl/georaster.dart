@@ -23,6 +23,11 @@ class GeoRaster extends AbstractGeoRaster {
 
   GeoRaster(this._file);
 
+  /// Create a georaster in esrii asc format to write.
+  ///
+  /// This will create the internal memory structure
+  /// to be filled with the [setDouble] and [setInt] methods
+  /// and then be written to disk with teh [write] method.
   GeoRaster.ascToWrite(
       int cols, int rows, double res, double xLLCorner, double yLLCorner,
       {num defaultValue, double novalue, String prjWkt}) {
@@ -164,16 +169,19 @@ nrows         ${_geoInfo.rows}
 xllcorner     ${_geoInfo.worldEnvelope.getMinX()}
 yllcorner     ${_geoInfo.worldEnvelope.getMinY()}
 cellsize      ${_geoInfo.xRes}
-NODATA_value  ${_geoInfo.noValue}""";
-        var ioSink = outFile.openWrite(mode: FileMode.append);
+NODATA_value  ${_geoInfo.noValue}\n""";
+        var raFile = outFile.openSync(mode: FileMode.append);
         try {
-          ioSink.writeln(header);
+          raFile.writeStringSync(header);
           dataList.forEach((row) {
-            ioSink.writeAll(row, " ");
-            ioSink.write("\n");
+            row.forEach((n) {
+              raFile.writeStringSync(n.toString());
+              raFile.writeStringSync(" ");
+            });
+            raFile.writeStringSync("\n");
           });
         } finally {
-          ioSink.close();
+          raFile.close();
         }
 
         // write prj if available
