@@ -52,6 +52,9 @@ class GeoImage extends AbstractGeoImage {
   }
 
   @override
+  Image get image => _image;
+
+  @override
   GeoInfo get geoInfo => _geoInfo;
 
   @override

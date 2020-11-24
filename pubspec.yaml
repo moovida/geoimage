@@ -12,10 +12,10 @@ dependencies:
   dart_jts: ^0.0.6
 
   # Apache 2.0
-  image: #^2.1.18
-    git:
-      url: https://github.com/brendan-duncan/image.git
-      ref: tiff_hdr_refactor
+  image: ^2.1.19
+    # git:
+    #   url: https://github.com/brendan-duncan/image.git
+    #   ref: tiff_hdr_refactor
 
 
 dev_dependencies:

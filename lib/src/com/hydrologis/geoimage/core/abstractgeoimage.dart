@@ -1,4 +1,5 @@
 import 'package:geoimage/src/com/hydrologis/geoimage/core/geoinfo.dart';
+import 'package:image/image.dart';
 
 /// Abstract class for regular grid rasters.
 abstract class AbstractGeoImage {
@@ -18,6 +19,9 @@ abstract class AbstractGeoImage {
 
   /// Get the tag values for a given tag key.
   List<int> getTag(int key);
+
+  /// Get the image for the currnetly read [imageIndex].
+  Image get image;
 }
 
 /// Abstract class for regular grid rasters with physical data.

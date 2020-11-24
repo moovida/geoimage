@@ -8,6 +8,8 @@ import 'package:image/image.dart';
 import '../utils.dart';
 
 /// A raster class representing a geoimage containing physical data.
+///
+/// At the current time only esrii ascii and tiffs are supported.
 class GeoRaster extends AbstractGeoRaster {
   File _file;
   HdrImage _raster;
@@ -199,6 +201,11 @@ NODATA_value  ${_geoInfo.noValue}\n""";
     } else {
       throw StateError("This raster is not in write mode.");
     }
+  }
+
+  @override
+  Image get image {
+    return null;
   }
 
   @override
