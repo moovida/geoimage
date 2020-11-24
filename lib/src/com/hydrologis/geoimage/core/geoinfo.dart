@@ -164,12 +164,15 @@ class GeoInfo {
     var gdalNovalueTag = image.tags[TiffTags.TAG_GDAL_NODATA];
     if (gdalNovalueTag != null) {
       var gdalNovalueBytes = gdalNovalueTag.readValues();
-      String gdalNovaleString =
-          utf8.decode(gdalNovalueBytes, allowMalformed: false).trim();
+      var gdalNovaleString = String.fromCharCodes(gdalNovalueBytes);
       if (gdalNovaleString.startsWith("nan")) {
         noValue = double.nan;
       } else {
-        noValue = double.parse(gdalNovaleString);
+        noValue = double.tryParse(gdalNovaleString);
+        if (noValue == null) {
+          noValue = double.tryParse(
+              gdalNovaleString.substring(0, gdalNovaleString.length - 1));
+        }
       }
     }
   }
