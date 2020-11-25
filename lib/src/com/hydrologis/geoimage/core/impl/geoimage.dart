@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:geoimage/geoimage.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/geoinfo.dart';
@@ -11,6 +12,7 @@ class GeoImage extends AbstractGeoImage {
   Image _image;
   GeoInfo _geoInfo;
   TiffImage _tiffImage;
+  Uint8List _imageBytes;
 
   GeoImage(this._file);
 
@@ -19,13 +21,13 @@ class GeoImage extends AbstractGeoImage {
     if (imageIndex == null) {
       imageIndex = 0;
     }
-    var bytes = _file.readAsBytesSync();
+    _imageBytes = _file.readAsBytesSync();
     TiffDecoder tiffDecoder;
     if (GeoimageUtils.isTiff(_file.path)) {
       tiffDecoder = TiffDecoder();
-      _image = tiffDecoder.decodeImage(bytes);
+      _image = tiffDecoder.decodeImage(_imageBytes);
     } else {
-      _image = decodeImage(bytes);
+      _image = decodeImage(_imageBytes);
     }
     var wesnxyValues =
         GeoimageUtils.parseWorldFile(_file.path, _image.width, _image.height);
@@ -53,6 +55,9 @@ class GeoImage extends AbstractGeoImage {
 
   @override
   Image get image => _image;
+
+  @override
+  List<int> get imageBytes => _imageBytes;
 
   @override
   GeoInfo get geoInfo => _geoInfo;

@@ -204,9 +204,10 @@ NODATA_value  ${_geoInfo.noValue}\n""";
   }
 
   @override
-  Image get image {
-    return null;
-  }
+  Image get image => null;
+
+  @override
+  List<int> get imageBytes => null;
 
   @override
   GeoInfo get geoInfo => _geoInfo;

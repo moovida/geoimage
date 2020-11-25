@@ -22,6 +22,9 @@ abstract class AbstractGeoImage {
 
   /// Get the image for the currnetly read [imageIndex].
   Image get image;
+
+  /// Get the image bytes for the currnetly read [imageIndex].
+  List<int> get imageBytes;
 }
 
 /// Abstract class for regular grid rasters with physical data.
