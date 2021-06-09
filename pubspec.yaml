@@ -1,6 +1,6 @@
 name: geoimage
 description: A geo-wrapper around the image project (https://pub.dev/packages/image)
-version: 0.1.2+2
+version: 0.1.2+3
 homepage: https://github.com/moovida/geoimage
 
 environment:
@@ -9,7 +9,7 @@ environment:
 dependencies:
   path: ^1.7.0
 
-  dart_jts: ^0.0.7
+  dart_jts: ^0.1.0
 
   # Apache 2.0
   image: '>=2.1.19 <=3.0.0-nullsafety.0'
