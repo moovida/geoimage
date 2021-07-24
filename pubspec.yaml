@@ -1,6 +1,6 @@
 name: geoimage
 description: A geo-wrapper around the image project (https://pub.dev/packages/image)
-version: 0.1.2+3
+version: 0.2.0
 homepage: https://github.com/moovida/geoimage
 
 environment:

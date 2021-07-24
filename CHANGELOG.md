@@ -1,3 +1,7 @@
+## 0.2.0
+
+MIgrate to null safety.
+
 ## 0.1.2
 
 Expose image bytes in API.
