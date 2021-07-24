@@ -258,12 +258,12 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
 
   @override
   double getDouble(int col, int row, [int? band]) {
-    if (_raster == null) {
-      throw StateError("raster is null");
-    }
     if (isEsriAsc) {
       return dataList[row][col].toDouble();
     } else {
+      if (_raster == null) {
+        throw StateError("raster is null");
+      }
       if (band == null || band == 0) {
         return _raster!.red!.getFloat(col, row);
       } else if (band == 1) {
@@ -277,12 +277,12 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
 
   @override
   int getInt(int col, int row, [int? band]) {
-    if (_raster == null) {
-      throw StateError("raster is null");
-    }
     if (isEsriAsc) {
       return dataList[row][col].toInt();
     } else {
+      if (_raster == null) {
+        throw StateError("raster is null");
+      }
       if (band == null || band == 0) {
         return _raster!.red!.getInt(col, row);
       } else if (band == 1) {
