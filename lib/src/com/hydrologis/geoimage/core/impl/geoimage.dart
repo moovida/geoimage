@@ -9,35 +9,38 @@ import 'package:image/image.dart';
 /// A raster class representing a generic geoimage.
 class GeoImage extends AbstractGeoImage {
   final File _file;
-  Image _image;
-  GeoInfo _geoInfo;
-  TiffImage _tiffImage;
-  Uint8List _imageBytes;
+  Image? _image;
+  GeoInfo? _geoInfo;
+  TiffImage? _tiffImage;
+  late Uint8List _imageBytes;
 
   GeoImage(this._file);
 
   @override
-  void read([int imageIndex]) {
+  void read([int? imageIndex]) {
     if (imageIndex == null) {
       imageIndex = 0;
     }
     _imageBytes = _file.readAsBytesSync();
-    TiffDecoder tiffDecoder;
+    TiffDecoder? tiffDecoder;
     if (GeoimageUtils.isTiff(_file.path)) {
       tiffDecoder = TiffDecoder();
       _image = tiffDecoder.decodeImage(_imageBytes);
     } else {
       _image = decodeImage(_imageBytes);
     }
+    if (_image == null) {
+      throw StateError("Unable to decode image.");
+    }
     var wesnxyValues =
-        GeoimageUtils.parseWorldFile(_file.path, _image.width, _image.height);
+        GeoimageUtils.parseWorldFile(_file.path, _image!.width, _image!.height);
 
     var prjWkt = GeoimageUtils.getPrjWkt(_file.path);
     if (wesnxyValues != null) {
       // has worldfile
       _geoInfo = GeoInfo.fromValues(
-          _image.width,
-          _image.height,
+          _image!.width,
+          _image!.height,
           wesnxyValues[4],
           -wesnxyValues[5],
           wesnxyValues[0],
@@ -46,29 +49,33 @@ class GeoImage extends AbstractGeoImage {
     } else if (tiffDecoder != null) {
       // without worldfile only tiffs can contain geoinfo
       var tiffInfo = tiffDecoder.info;
-      _tiffImage = tiffInfo.images[imageIndex];
-      _geoInfo = GeoInfo(_tiffImage, prjWkt);
+      if (tiffInfo != null) {
+        _tiffImage = tiffInfo.images[imageIndex];
+        if (_tiffImage != null) {
+          _geoInfo = GeoInfo(_tiffImage!, prjWkt);
+        }
+      }
     } else {
       throw ArgumentError("The supplied image is not a supported geoimage.");
     }
   }
 
   @override
-  Image get image => _image;
+  Image? get image => _image;
 
   @override
-  List<int> get imageBytes => _imageBytes;
+  List<int>? get imageBytes => _imageBytes;
 
   @override
-  GeoInfo get geoInfo => _geoInfo;
+  GeoInfo? get geoInfo => _geoInfo;
 
   @override
-  int get bands => _image.numberOfChannels;
+  int? get bands => _image?.numberOfChannels;
 
   @override
-  List<int> getTag(int key) {
-    if (_tiffImage != null && _tiffImage.tags != null) {
-      var tag = _tiffImage.tags[key];
+  List<int>? getTag(int key) {
+    if (_tiffImage != null) {
+      var tag = _tiffImage!.tags[key];
       if (tag != null) {
         return tag.readValues();
       }
@@ -78,6 +85,6 @@ class GeoImage extends AbstractGeoImage {
 
   @override
   bool hasTags() {
-    return _tiffImage != null && _tiffImage.tags != null ? true : false;
+    return _tiffImage != null ? true : false;
   }
 }

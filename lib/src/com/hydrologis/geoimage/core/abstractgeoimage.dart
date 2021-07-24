@@ -9,22 +9,22 @@ abstract class AbstractGeoImage {
   void read([int imageIndex]);
 
   /// Get the geoinformation object for the selected image.
-  GeoInfo get geoInfo;
+  GeoInfo? get geoInfo;
 
   /// Get the number of bands.
-  int get bands;
+  int? get bands;
 
   /// Check if the image has tags (tiff tags).
   bool hasTags();
 
   /// Get the tag values for a given tag key.
-  List<int> getTag(int key);
+  List<int>? getTag(int key);
 
   /// Get the image for the currnetly read [imageIndex].
-  Image get image;
+  Image? get image;
 
   /// Get the image bytes for the currnetly read [imageIndex].
-  List<int> get imageBytes;
+  List<int>? get imageBytes;
 }
 
 /// Abstract class for regular grid rasters with physical data.

@@ -6,7 +6,7 @@ import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/georaster.dart';
 
 class Aspect {
   /// The input elevation raster.
-  AbstractGeoRaster inElev;
+  late AbstractGeoRaster inElev;
 
   /// Switch to define whether create the output map in degrees (default) or radiants.
   bool doRadiants = false;
@@ -15,7 +15,7 @@ class Aspect {
   bool doRound = false;
 
   /// The map of aspect.
-  AbstractGeoRaster outAspect;
+  late AbstractGeoRaster outAspect;
 
   static final nv = GeoimageUtils.doubleNovalue;
 
@@ -25,11 +25,11 @@ class Aspect {
       radtodeg = 1.0;
     }
 
-    var geoInfo = inElev.geoInfo;
-    double xRes = geoInfo.xRes;
-    double yRes = geoInfo.yRes;
+    var geoInfo = inElev.geoInfo!;
+    double? xRes = geoInfo.xRes;
+    double? yRes = geoInfo.yRes;
 
-    outAspect = GeoRaster.ascToWrite(geoInfo.cols, geoInfo.rows, geoInfo.xRes,
+    outAspect = GeoRaster.ascToWrite(geoInfo.cols!, geoInfo.rows!, xRes!,
         geoInfo.worldEnvelope.getMinX(), geoInfo.worldEnvelope.getMinY(),
         defaultValue: nv, novalue: nv, prjWkt: geoInfo.prjWkt);
 
@@ -38,7 +38,7 @@ class Aspect {
         //aspectIter.setSample(col, row, 0, HMConstants.shortNovalue);
         outAspect.setInt(node.col, node.row, GeoimageUtils.intNovalue);
       } else {
-        double aspect = calculateAspect(node, radtodeg, doRound, xRes, yRes);
+        double aspect = calculateAspect(node, radtodeg, doRound, xRes, yRes!);
         if (doRound) {
           //  aspectIter.setSample(col, row, 0, (short) aspect);
           outAspect.setInt(node.col, node.row, aspect.round());

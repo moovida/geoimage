@@ -77,7 +77,7 @@ void main() {
 
       var geoInfo = raster.geoInfo;
 
-      var worldEnvelope = geoInfo.worldEnvelope;
+      var worldEnvelope = geoInfo!.worldEnvelope;
       var expected =
           Envelope(1640650.000, 1640950.000, 5139780.000, 5140020.000);
       expect(worldEnvelope == expected, true);
@@ -222,7 +222,7 @@ void main() {
       var raster = GeoRaster(file64bit);
       raster.read();
 
-      expect(null, raster.geoInfo.noValue);
+      expect(null, raster.geoInfo!.noValue);
 
       raster.loopWithFloatValue((col, row, value) {
         expect(value, mapData[row][col]);
@@ -295,7 +295,7 @@ void main() {
       var raster = GeoRaster(file32int);
       raster.read();
 
-      expect(-2147483648.0, raster.geoInfo.noValue);
+      expect(-2147483648.0, raster.geoInfo!.noValue);
 
       raster.loopWithIntValue((col, row, value) {
         expect(value, tcaData[row][col]);
@@ -368,7 +368,7 @@ void main() {
       var raster = GeoRaster(file16int);
       raster.read();
 
-      expect(-32768.0, raster.geoInfo.noValue);
+      expect(-32768.0, raster.geoInfo!.noValue);
 
       raster.loopWithIntValue((col, row, value) {
         var expected = flowData[row][col];
@@ -428,7 +428,7 @@ void main() {
 
       var geoInfo = raster.geoInfo;
 
-      var worldEnvelope = geoInfo.worldEnvelope;
+      var worldEnvelope = geoInfo!.worldEnvelope;
       var expected =
           Envelope(-180.0000000, 180.0000000, -90.0000000, 90.0000000);
 
@@ -454,11 +454,11 @@ void main() {
       expect(geoInfo.srid, 4326);
       expect(
           NumberUtils.equalsWithTolerance(
-              geoInfo.xRes, 360.000000000072021, 0.00000001),
+              geoInfo.xRes!, 360.000000000072021, 0.00000001),
           true);
       expect(
           NumberUtils.equalsWithTolerance(
-              geoInfo.yRes, 180.000000000036010, 0.00000001),
+              geoInfo.yRes!, 180.000000000036010, 0.00000001),
           true);
     });
     test('test tiff with overviews', () {
@@ -530,33 +530,33 @@ void main() {
       var tiff = File('./test/files/imageioext/test.tif');
       var raster = GeoImage(tiff);
       raster.read(0);
-      var geoInfo = raster.geoInfo;
+      var geoInfo = raster.geoInfo!;
       expect(geoInfo.cols, 30);
       expect(geoInfo.rows, 26);
       expect(geoInfo.srid, 26921);
 
       raster.read(1);
-      geoInfo = raster.geoInfo;
+      geoInfo = raster.geoInfo!;
       expect(geoInfo.cols, 15);
       expect(geoInfo.rows, 13);
 
       raster.read(2);
-      geoInfo = raster.geoInfo;
+      geoInfo = raster.geoInfo!;
       expect(geoInfo.cols, 8);
       expect(geoInfo.rows, 7);
 
       raster.read(3);
-      geoInfo = raster.geoInfo;
+      geoInfo = raster.geoInfo!;
       expect(geoInfo.cols, 4);
       expect(geoInfo.rows, 4);
 
       raster.read(4);
-      geoInfo = raster.geoInfo;
+      geoInfo = raster.geoInfo!;
       expect(geoInfo.cols, 2);
       expect(geoInfo.rows, 2);
 
       raster.read(5);
-      geoInfo = raster.geoInfo;
+      geoInfo = raster.geoInfo!;
       expect(geoInfo.cols, 1);
       expect(geoInfo.rows, 1);
     });
@@ -565,13 +565,13 @@ void main() {
       var tiff = File('./test/files/imageioext/emptyTiles.tif');
       var raster = GeoRaster(tiff);
       raster.read();
-      var geoInfo = raster.geoInfo;
+      var geoInfo = raster.geoInfo!;
       expect(geoInfo.cols, 1440);
       expect(geoInfo.rows, 720);
       expect(geoInfo.srid, 4326);
 
       var readNV = raster.getDouble(1439, 0);
-      expect(readNV.isNaN && geoInfo.noValue.isNaN, true);
+      expect(readNV.isNaN && geoInfo.noValue!.isNaN, true);
     });
 
     // TODO CHECK BACK ON THIS
@@ -653,7 +653,7 @@ void main() {
       var jpgFile = File('./test/files/worldimage/earthlights.jpg');
       var rasterJpg = GeoImage(jpgFile);
       rasterJpg.read();
-      var geoInfoJpg = rasterJpg.geoInfo;
+      var geoInfoJpg = rasterJpg.geoInfo!;
 
       var expected =
           Envelope(-180.0000000, 180.0000000, -90.0000000, 90.0000000);
@@ -669,11 +669,11 @@ void main() {
       var jpgFile = File('./test/files/worldimage/earthlights.jpg');
       var rasterJpg = GeoImage(jpgFile);
       rasterJpg.read();
-      var geoInfoJpg = rasterJpg.geoInfo;
+      var geoInfoJpg = rasterJpg.geoInfo!;
       var tiffFile = File('./test/files/worldimage/earthlights.tiff');
       var rasterTiff = GeoImage(tiffFile);
       rasterTiff.read();
-      var geoInfoTiff = rasterTiff.geoInfo;
+      var geoInfoTiff = rasterTiff.geoInfo!;
 
       expect(geoInfoJpg.worldEnvelope == geoInfoTiff.worldEnvelope, true);
       expect(geoInfoJpg.prjWkt == geoInfoTiff.prjWkt, true);
@@ -684,7 +684,7 @@ void main() {
       var ascFile = File('./test/files/esriasc/dtm_flanginec.asc');
       var rasterAsc = GeoRaster(ascFile);
       rasterAsc.read();
-      var geoInfoAsc = rasterAsc.geoInfo;
+      var geoInfoAsc = rasterAsc.geoInfo!;
 
       // NCOLS 355
       // NROWS 361
@@ -703,7 +703,7 @@ void main() {
       expect(rasterAsc.getDouble(8, 0), 1217.385986328125);
       expect(geoInfoAsc.srid, -1);
       expect(
-          geoInfoAsc.prjWkt.trim(),
+          geoInfoAsc.prjWkt!.trim(),
           """PROJCS["Monte Mario / Italy zone 1 - Peninsular Part/Accuracy 3-4m", 
   GEOGCS["Monte Mario", 
     DATUM["Monte Mario", 

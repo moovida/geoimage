@@ -11,14 +11,14 @@ import '../utils.dart';
 ///
 /// At the current time only esrii ascii and tiffs are supported.
 class GeoRaster extends AbstractGeoRaster {
-  File _file;
-  HdrImage _raster;
-  GeoInfo _geoInfo;
-  int _rows;
-  int _cols;
-  TiffInfo _tiffInfo;
-  TiffImage _tiffImage;
-  List<List<num>> dataList;
+  File? _file;
+  HdrImage? _raster;
+  GeoInfo? _geoInfo;
+  int? _rows;
+  int? _cols;
+  TiffInfo? _tiffInfo;
+  TiffImage? _tiffImage;
+  late List<List<double>> dataList;
   bool isEsriAsc = false;
   bool isTiff = false;
   bool writeMode = false;
@@ -32,62 +32,67 @@ class GeoRaster extends AbstractGeoRaster {
   /// and then be written to disk with teh [write] method.
   GeoRaster.ascToWrite(
       int cols, int rows, double res, double xLLCorner, double yLLCorner,
-      {num defaultValue, double novalue, String prjWkt}) {
+      {double? defaultValue, double? novalue, String? prjWkt}) {
     if (novalue == null) {
       novalue = -9999.0;
     }
-    dataList = List(rows);
+    dataList = []; // List(rows);
     for (var i = 0; i < rows; i++) {
       if (defaultValue != null) {
-        dataList[i] = List.filled(cols, defaultValue);
+        dataList.add(List.filled(cols, defaultValue));
+        // dataList[i] = List.filled(cols, defaultValue);
       } else {
-        dataList[i] = List(cols);
+        dataList.add(List.filled(cols, 0.0));
+        // dataList[i] = List(cols);
       }
     }
     writeMode = true;
     isEsriAsc = true;
     _geoInfo = GeoInfo.fromValues(
         cols, rows, res, -res, xLLCorner, yLLCorner + res * rows, prjWkt);
-    _geoInfo.noValue = novalue;
+    _geoInfo!.noValue = novalue;
   }
 
   @override
-  void read([int imageIndex]) {
+  void read([int? imageIndex]) {
     if (imageIndex == null) {
       imageIndex = 0;
     }
 
     // right now geotiff ad esri ascii grids are supported
-    if (GeoimageUtils.isTiff(_file.path)) {
-      var bytes = _file.readAsBytesSync();
+    if (GeoimageUtils.isTiff(_file!.path)) {
+      var bytes = _file!.readAsBytesSync();
       var tiffDecoder = TiffDecoder();
       _raster = tiffDecoder.decodeHdrImage(bytes, frame: imageIndex);
       _tiffInfo = tiffDecoder.info;
-      _tiffImage = _tiffInfo.images[imageIndex];
+      _tiffImage = _tiffInfo?.images[imageIndex];
 
+      if (_raster == null) {
+        throw StateError("Unable to decode tiff.");
+      }
       // even in this case there might be worldfile info. In case use them.
       var wesnxyValues = GeoimageUtils.parseWorldFile(
-          _file.path, _raster.width, _raster.height);
-      var prjWkt = GeoimageUtils.getPrjWkt(_file.path);
+          _file!.path, _raster!.width, _raster!.height);
+      var prjWkt = GeoimageUtils.getPrjWkt(_file!.path);
       if (wesnxyValues != null) {
         // has worldfile
         _geoInfo = GeoInfo.fromValues(
-            _raster.width,
-            _raster.height,
+            _raster!.width,
+            _raster!.height,
             wesnxyValues[4],
             -wesnxyValues[5],
             wesnxyValues[0],
             wesnxyValues[3],
             prjWkt);
       } else {
-        _geoInfo = GeoInfo(_tiffImage);
+        _geoInfo = GeoInfo(_tiffImage!);
       }
-      _rows = _geoInfo.rows;
-      _cols = _geoInfo.cols;
+      _rows = _geoInfo!.rows;
+      _cols = _geoInfo!.cols;
       isTiff = true;
-    } else if (GeoimageUtils.isAsc(_file.path)) {
-      var prjWkt = GeoimageUtils.getPrjWkt(_file.path);
-      var fileLines = GeoimageUtils.readFileToList(_file.path);
+    } else if (GeoimageUtils.isAsc(_file!.path)) {
+      var prjWkt = GeoimageUtils.getPrjWkt(_file!.path);
+      var fileLines = GeoimageUtils.readFileToList(_file!.path);
 
       // ncols         4
       // nrows         6
@@ -96,12 +101,12 @@ class GeoRaster extends AbstractGeoRaster {
       // cellsize      50.0
       // NODATA_value  -9999
 
-      int cols;
-      int rows;
-      double west;
-      double south;
-      double novalue;
-      double res;
+      int cols = 0;
+      int rows = 0;
+      double west = 0.0;
+      double south = 0.0;
+      double novalue = 0.0;
+      double res = 0.0;
       dataList = [];
       bool dataStarted = false;
       for (var i = 0; i < fileLines.length; i++) {
@@ -150,9 +155,9 @@ class GeoRaster extends AbstractGeoRaster {
       }
       _geoInfo = GeoInfo.fromValues(
           cols, rows, res, -res, west, south + rows * res, prjWkt);
-      _rows = _geoInfo.rows;
-      _cols = _geoInfo.cols;
-      _geoInfo.noValue = novalue;
+      _rows = _geoInfo!.rows;
+      _cols = _geoInfo!.cols;
+      _geoInfo!.noValue = novalue;
       isEsriAsc = true;
     }
   }
@@ -166,12 +171,12 @@ class GeoRaster extends AbstractGeoRaster {
           outFile.deleteSync();
         }
         var header = """
-ncols         ${_geoInfo.cols}
-nrows         ${_geoInfo.rows}
-xllcorner     ${_geoInfo.worldEnvelope.getMinX()}
-yllcorner     ${_geoInfo.worldEnvelope.getMinY()}
-cellsize      ${_geoInfo.xRes}
-NODATA_value  ${_geoInfo.noValue}\n""";
+ncols         ${_geoInfo!.cols}
+nrows         ${_geoInfo!.rows}
+xllcorner     ${_geoInfo!.worldEnvelope.getMinX()}
+yllcorner     ${_geoInfo!.worldEnvelope.getMinY()}
+cellsize      ${_geoInfo!.xRes}
+NODATA_value  ${_geoInfo!.noValue}\n""";
         var raFile = outFile.openSync(mode: FileMode.append);
         try {
           raFile.writeStringSync(header);
@@ -187,11 +192,11 @@ NODATA_value  ${_geoInfo.noValue}\n""";
         }
 
         // write prj if available
-        if (geoInfo.prjWkt != null) {
+        if (geoInfo!.prjWkt != null) {
           var prjPath = GeoimageUtils.getPrjFile(path, alsoIfNotExists: true);
           if (prjPath != null) {
             var prjFile = File(prjPath);
-            prjFile.writeAsStringSync(geoInfo.prjWkt);
+            prjFile.writeAsStringSync(geoInfo!.prjWkt!);
           }
         }
       } else {
@@ -204,21 +209,24 @@ NODATA_value  ${_geoInfo.noValue}\n""";
   }
 
   @override
-  Image get image => null;
+  Image? get image => null;
 
   @override
-  List<int> get imageBytes => null;
+  List<int>? get imageBytes => null;
 
   @override
-  GeoInfo get geoInfo => _geoInfo;
+  GeoInfo? get geoInfo => _geoInfo;
 
   @override
-  int get bands => _raster.numberOfChannels;
+  int? get bands => _raster?.numberOfChannels;
 
   @override
   void loopWithFloatValue(Function colRowValueFunction) {
-    for (var r = 0; r < _rows; r++) {
-      for (var c = 0; c < _cols; c++) {
+    if (_rows == null || _cols == null) {
+      throw StateError("rows and cols are null");
+    }
+    for (var r = 0; r < _rows!; r++) {
+      for (var c = 0; c < _cols!; c++) {
         colRowValueFunction(c, r, getDouble(c, r));
       }
     }
@@ -226,8 +234,11 @@ NODATA_value  ${_geoInfo.noValue}\n""";
 
   @override
   void loopWithIntValue(Function colRowValueFunction) {
-    for (var r = 0; r < _rows; r++) {
-      for (var c = 0; c < _cols; c++) {
+    if (_rows == null || _cols == null) {
+      throw StateError("rows and cols are null");
+    }
+    for (var r = 0; r < _rows!; r++) {
+      for (var c = 0; c < _cols!; c++) {
         colRowValueFunction(c, r, getInt(c, r));
       }
     }
@@ -235,47 +246,56 @@ NODATA_value  ${_geoInfo.noValue}\n""";
 
   @override
   void loopWithGridNode(Function gridNodeFunction) {
-    for (var r = 0; r < _rows; r++) {
-      for (var c = 0; c < _cols; c++) {
+    if (_rows == null || _cols == null) {
+      throw StateError("rows and cols are null");
+    }
+    for (var r = 0; r < _rows!; r++) {
+      for (var c = 0; c < _cols!; c++) {
         gridNodeFunction(GridNode(this, c, r));
       }
     }
   }
 
   @override
-  double getDouble(int col, int row, [int band]) {
+  double getDouble(int col, int row, [int? band]) {
+    if (_raster == null) {
+      throw StateError("raster is null");
+    }
     if (isEsriAsc) {
-      return dataList[row][col];
+      return dataList[row][col].toDouble();
     } else {
       if (band == null || band == 0) {
-        return _raster.red.getFloat(col, row);
+        return _raster!.red!.getFloat(col, row);
       } else if (band == 1) {
-        return _raster.green.getFloat(col, row);
+        return _raster!.green!.getFloat(col, row);
       } else if (band == 2) {
-        return _raster.blue.getFloat(col, row);
+        return _raster!.blue!.getFloat(col, row);
       }
-      return null;
+      throw StateError("invalid band number");
     }
   }
 
   @override
-  int getInt(int col, int row, [int band]) {
+  int getInt(int col, int row, [int? band]) {
+    if (_raster == null) {
+      throw StateError("raster is null");
+    }
     if (isEsriAsc) {
       return dataList[row][col].toInt();
     } else {
       if (band == null || band == 0) {
-        return _raster.red.getInt(col, row);
+        return _raster!.red!.getInt(col, row);
       } else if (band == 1) {
-        return _raster.green.getInt(col, row);
+        return _raster!.green!.getInt(col, row);
       } else if (band == 2) {
-        return _raster.blue.getInt(col, row);
+        return _raster!.blue!.getInt(col, row);
       }
-      return null;
+      throw StateError("invalid band number");
     }
   }
 
   @override
-  void setDouble(int col, int row, double value, [int band]) {
+  void setDouble(int col, int row, double value, [int? band]) {
     if (isEsriAsc) {
       dataList[row][col] = value;
     } else {
@@ -284,7 +304,7 @@ NODATA_value  ${_geoInfo.noValue}\n""";
   }
 
   @override
-  void setInt(int col, int row, int value, [int band]) {
+  void setInt(int col, int row, int value, [int? band]) {
     if (isEsriAsc) {
       dataList[row][col] = value.toDouble();
     } else {
@@ -293,9 +313,9 @@ NODATA_value  ${_geoInfo.noValue}\n""";
   }
 
   @override
-  List<int> getTag(int key) {
-    if (_tiffImage != null && _tiffImage.tags != null) {
-      var tag = _tiffImage.tags[key];
+  List<int>? getTag(int key) {
+    if (_tiffImage != null) {
+      var tag = _tiffImage!.tags[key];
       if (tag != null) {
         return tag.readValues();
       }
@@ -305,6 +325,6 @@ NODATA_value  ${_geoInfo.noValue}\n""";
 
   @override
   bool hasTags() {
-    return _tiffImage != null && _tiffImage.tags != null ? true : false;
+    return _tiffImage != null ? true : false;
   }
 }

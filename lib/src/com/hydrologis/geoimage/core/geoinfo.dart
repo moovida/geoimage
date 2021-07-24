@@ -6,24 +6,24 @@ import 'package:image/image.dart';
 
 /// Class to extract geographic information from a [TiffImage].
 class GeoInfo {
-  AffineTransformation _pixelToWorldTransform;
-  AffineTransformation _worldToPixelTransform;
+  AffineTransformation? _pixelToWorldTransform;
+  AffineTransformation? _worldToPixelTransform;
 
   /// The projection epsg code. This or [prjWkt] need to be available.
   int _srid = -1;
 
   /// The projection wkt format. This or [srid] need to be available.
-  String _prjWkt;
+  String? _prjWkt;
 
-  int _cols;
-  int _rows;
-  double _xResolution;
-  double _yResolution;
-  Envelope _worldEnvelope;
-  double noValue;
+  int? _cols;
+  int? _rows;
+  double? _xResolution;
+  double? _yResolution;
+  late Envelope _worldEnvelope;
+  double? noValue;
 
   GeoInfo.fromValues(int width, int height, double xScale, double yScale,
-      double xMin, double yMax, String prjWkt) {
+      double xMin, double yMax, String? prjWkt) {
     _rows = height;
     _cols = width;
     _prjWkt = prjWkt;
@@ -39,20 +39,20 @@ class GeoInfo {
     var m12 = yMax;
     _pixelToWorldTransform =
         AffineTransformation.fromMatrixValues(m00, m01, m02, m10, m11, m12);
-    _worldToPixelTransform = _pixelToWorldTransform.getInverse();
+    _worldToPixelTransform = _pixelToWorldTransform!.getInverse();
 
     _xResolution = m00;
     _yResolution = m11.abs();
 
-    var llCoord = _pixelToWorldTransform.transform(
-        Coordinate(0, 0), Coordinate.empty2D());
-    var urCoord = _pixelToWorldTransform.transform(
-        Coordinate(_cols.toDouble(), _rows.toDouble()), Coordinate.empty2D());
+    var llCoord = _pixelToWorldTransform!
+        .transform(Coordinate(0, 0), Coordinate.empty2D());
+    var urCoord = _pixelToWorldTransform!.transform(
+        Coordinate(_cols!.toDouble(), _rows!.toDouble()), Coordinate.empty2D());
 
     _worldEnvelope = Envelope.fromCoordinates(llCoord, urCoord);
   }
 
-  GeoInfo(TiffImage image, [String prjWkt]) {
+  GeoInfo(TiffImage image, [String? prjWkt]) {
     _prjWkt = prjWkt;
     _rows = image.height;
     _cols = image.width;
@@ -76,15 +76,16 @@ class GeoInfo {
       var m12 = transformationMatrix[7];
       _pixelToWorldTransform =
           AffineTransformation.fromMatrixValues(m00, m01, m02, m10, m11, m12);
-      _worldToPixelTransform = _pixelToWorldTransform.getInverse();
+      _worldToPixelTransform = _pixelToWorldTransform!.getInverse();
 
       _xResolution = m00;
       _yResolution = m11.abs();
 
-      var llCoord = _pixelToWorldTransform.transform(
-          Coordinate(0, 0), Coordinate.empty2D());
-      var urCoord = _pixelToWorldTransform.transform(
-          Coordinate(_cols.toDouble(), _rows.toDouble()), Coordinate.empty2D());
+      var llCoord = _pixelToWorldTransform!
+          .transform(Coordinate(0, 0), Coordinate.empty2D());
+      var urCoord = _pixelToWorldTransform!.transform(
+          Coordinate(_cols!.toDouble(), _rows!.toDouble()),
+          Coordinate.empty2D());
 
       _worldEnvelope = Envelope.fromCoordinates(llCoord, urCoord);
     } else {
@@ -112,15 +113,15 @@ class GeoInfo {
 
           _pixelToWorldTransform = AffineTransformation.fromMatrixValues(
               m00, m01, m02, m10, m11, m12);
-          _worldToPixelTransform = _pixelToWorldTransform.getInverse();
+          _worldToPixelTransform = _pixelToWorldTransform!.getInverse();
 
           _xResolution = m00;
           _yResolution = m11.abs();
 
-          var llCoord = _pixelToWorldTransform.transform(
-              Coordinate(0, 0), Coordinate.empty2D());
-          var urCoord = _pixelToWorldTransform.transform(
-              Coordinate(_cols.toDouble(), _rows.toDouble()),
+          var llCoord = _pixelToWorldTransform!
+              .transform(Coordinate(0, 0), Coordinate.empty2D());
+          var urCoord = _pixelToWorldTransform!.transform(
+              Coordinate(_cols!.toDouble(), _rows!.toDouble()),
               Coordinate.empty2D());
 
           _worldEnvelope = Envelope.fromCoordinates(llCoord, urCoord);
@@ -179,31 +180,31 @@ class GeoInfo {
 
   int get srid => _srid;
 
-  String get prjWkt => _prjWkt;
+  String? get prjWkt => _prjWkt;
 
-  int get rows => _rows;
+  int? get rows => _rows;
 
-  int get cols => _cols;
+  int? get cols => _cols;
 
-  double get xRes => _xResolution;
+  double? get xRes => _xResolution;
 
-  double get yRes => _yResolution;
+  double? get yRes => _yResolution;
 
   Envelope get worldEnvelope => _worldEnvelope;
 
-  Coordinate pixelToWorld(Coordinate src, Coordinate dest) {
-    return _pixelToWorldTransform.transform(src, dest);
+  Coordinate? pixelToWorld(Coordinate src, Coordinate dest) {
+    return _pixelToWorldTransform?.transform(src, dest);
   }
 
-  Coordinate worldToPixel(Coordinate src, Coordinate dest) {
-    return _worldToPixelTransform.transform(src, dest);
+  Coordinate? worldToPixel(Coordinate src, Coordinate dest) {
+    return _worldToPixelTransform?.transform(src, dest);
   }
 
-  Geometry pixelToWorldGeom(Geometry geom) {
-    return _pixelToWorldTransform.transformGeom(geom);
+  Geometry? pixelToWorldGeom(Geometry geom) {
+    return _pixelToWorldTransform?.transformGeom(geom);
   }
 
-  Geometry worldToPixelGeom(Geometry geom) {
-    return _worldToPixelTransform.transformGeom(geom);
+  Geometry? worldToPixelGeom(Geometry geom) {
+    return _worldToPixelTransform?.transformGeom(geom);
   }
 }

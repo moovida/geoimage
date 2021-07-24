@@ -40,7 +40,7 @@ class GeoimageUtils {
     return imagePath.toLowerCase().endsWith(ASC_EXT);
   }
 
-  static String getWorldFile(String imagePath) {
+  static String? getWorldFile(String imagePath) {
     String folder = p.dirname(imagePath);
     var name = p.basenameWithoutExtension(imagePath);
     var ext;
@@ -67,7 +67,7 @@ class GeoimageUtils {
     return null;
   }
 
-  static String getPrjFile(String imagePath, {bool alsoIfNotExists = false}) {
+  static String? getPrjFile(String imagePath, {bool alsoIfNotExists = false}) {
     String folder = p.dirname(imagePath);
     var name = p.basenameWithoutExtension(imagePath);
     var prjPath = p.join(folder, name + ".prj");
@@ -78,15 +78,15 @@ class GeoimageUtils {
     return null;
   }
 
-  static String getPrjWkt(String imagePath) {
-    String path = getPrjFile(imagePath);
+  static String? getPrjWkt(String imagePath) {
+    String? path = getPrjFile(imagePath);
     if (path != null) {
       return File(path).readAsStringSync();
     }
     return null;
   }
 
-  static List<double> parseWorldFile(String imagePath, int width, int height) {
+  static List<double>? parseWorldFile(String imagePath, int width, int height) {
     var worldFile = getWorldFile(imagePath);
     if (worldFile == null) {
       return null;
@@ -131,8 +131,8 @@ class GridNode {
   GridNode(this._raster, this._col, this._row) {
     if (_col == 0 ||
         _row == 0 ||
-        _col == _raster.geoInfo.cols - 1 ||
-        _row == _raster.geoInfo.rows - 1) {
+        _col == _raster.geoInfo!.cols! - 1 ||
+        _row == _raster.geoInfo!.rows! - 1) {
       _touchesBound = true;
     }
   }
