@@ -5,6 +5,7 @@ import 'package:geoimage/geoimage.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/geoinfo.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
+import '../geotiffentry.dart';
 
 /// A raster class representing a generic geoimage.
 class GeoImage extends AbstractGeoImage {
@@ -25,9 +26,11 @@ class GeoImage extends AbstractGeoImage {
     TiffDecoder? tiffDecoder;
     if (GeoimageUtils.isTiff(_file.path)) {
       tiffDecoder = TiffDecoder();
-      _image = tiffDecoder.decodeImage(_imageBytes);
+      //_image = tiffDecoder.decodeImage(_imageBytes);
+      _image = tiffDecoder.decode(_imageBytes);
     } else {
       _image = decodeImage(_imageBytes);
+
     }
     if (_image == null) {
       throw StateError("Unable to decode image.");
@@ -70,14 +73,15 @@ class GeoImage extends AbstractGeoImage {
   GeoInfo? get geoInfo => _geoInfo;
 
   @override
-  int? get bands => _image?.numberOfChannels;
+  int? get bands => _image?.data?.numChannels;
+  //int? get bands => _image?.numberOfChannels;
 
   @override
   List<int>? getTag(int key) {
     if (_tiffImage != null) {
       var tag = _tiffImage!.tags[key];
       if (tag != null) {
-        return tag.readValues();
+        return GeoTiffEntry(tag).readValues();
       }
     }
     return null;

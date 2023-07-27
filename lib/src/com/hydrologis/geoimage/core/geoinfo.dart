@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dart_jts/dart_jts.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
+import 'geotiffentry.dart';
 
 /// Class to extract geographic information from a [TiffImage].
 class GeoInfo {
@@ -63,7 +64,7 @@ class GeoInfo {
     //  0.0, 0.0, 0.0, 1.0]
     var modelTransformationTag = image.tags[TiffTags.MODEL_TRANSFORMATION_TAG];
     if (modelTransformationTag != null) {
-      var transformationMatrix = modelTransformationTag.read();
+      var transformationMatrix = GeoTiffEntry(modelTransformationTag).read();
 
       //  |  xScale      0  dx | => m00, m01, m02
       //  |  0      yScale  dy | => m10, m11, m12
@@ -99,15 +100,15 @@ class GeoInfo {
       //    10000            10000            0
       var modelPixelScaleTag = image.tags[TiffTags.MODEL_PIXELSCALE_TAG];
       if (modelPixelScaleTag != null) {
-        var modelPixelScale = modelPixelScaleTag.read();
+        var modelPixelScale = GeoTiffEntry(modelPixelScaleTag).read();
         var m00 = modelPixelScale[0];
         var m11 = -modelPixelScale[1];
 
         var modelTiepointTag = image.tags[TiffTags.MODEL_TIEPOINT_TAG];
         if (modelTiepointTag != null) {
-          var modelTiepoint = modelTiepointTag.read();
+          var modelTiepoint = GeoTiffEntry(modelTiepointTag).read();
           var m01 = 0.0;
-          var m02 = modelTiepoint[3];
+          var m02 = modelTiepoint![3];
           var m10 = 0.0;
           var m12 = modelTiepoint[4];
 
@@ -145,7 +146,7 @@ class GeoInfo {
     // 2059, 34736, 1, 1]
     var projInfoTag = image.tags[TiffTags.GEOKEY_DIRECTORY_TAG];
     if (projInfoTag != null) {
-      var projInfovalues = projInfoTag.readValues();
+      var projInfovalues = GeoTiffEntry(projInfoTag).readValues();
 
       // look for an epsg code
       //
@@ -164,7 +165,7 @@ class GeoInfo {
 
     var gdalNovalueTag = image.tags[TiffTags.TAG_GDAL_NODATA];
     if (gdalNovalueTag != null) {
-      var gdalNovalueBytes = gdalNovalueTag.readValues();
+      var gdalNovalueBytes = GeoTiffEntry(gdalNovalueTag).readValues();
       var gdalNovaleString = String.fromCharCodes(gdalNovalueBytes);
       if (gdalNovaleString.startsWith("nan")) {
         noValue = double.nan;

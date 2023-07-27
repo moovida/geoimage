@@ -6,13 +6,14 @@ import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
 
 import '../utils.dart';
+import '../geotiffentry.dart';
 
 /// A raster class representing a geoimage containing physical data.
 ///
 /// At the current time only esrii ascii and tiffs are supported.
 class GeoRaster extends AbstractGeoRaster {
   File? _file;
-  HdrImage? _raster;
+  Image? _raster;
   GeoInfo? _geoInfo;
   int? _rows;
   int? _cols;
@@ -63,7 +64,7 @@ class GeoRaster extends AbstractGeoRaster {
     if (GeoimageUtils.isTiff(_file!.path)) {
       var bytes = _file!.readAsBytesSync();
       var tiffDecoder = TiffDecoder();
-      _raster = tiffDecoder.decodeHdrImage(bytes, frame: imageIndex);
+      _raster = tiffDecoder.decode(bytes, frame: imageIndex);
       _tiffInfo = tiffDecoder.info;
       _tiffImage = _tiffInfo?.images[imageIndex];
 
@@ -218,7 +219,8 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
   GeoInfo? get geoInfo => _geoInfo;
 
   @override
-  int? get bands => _raster?.numberOfChannels;
+  int? get bands => _raster?.data?.numChannels;
+  //int? get bands => _raster?.numberOfChannels;
 
   @override
   void loopWithFloatValue(Function colRowValueFunction) {
@@ -255,6 +257,7 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
       }
     }
   }
+  /*
 
   @override
   double getDouble(int col, int row, [int? band]) {
@@ -273,8 +276,37 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
       }
       throw StateError("invalid band number");
     }
+  } */
+
+  @override
+  double getDouble(int col, int row, [int? band]) {
+    if (isEsriAsc) {
+      return dataList[row][col].toDouble();
+    } else {
+      if (_raster == null) {
+        throw StateError("raster is null");
+      }
+      if (band == null || band == 0) {
+        return _raster!.data!
+            .getPixel(col, row)
+            .getChannel(Channel.red)
+            .toDouble();
+      } else if (band == 1) {
+        return _raster!.data!
+            .getPixel(col, row)
+            .getChannel(Channel.green)
+            .toDouble();
+      } else if (band == 2) {
+        return _raster!.data!
+            .getPixel(col, row)
+            .getChannel(Channel.blue)
+            .toDouble();
+      }
+      throw StateError("invalid band number");
+    }
   }
 
+  /*
   @override
   int getInt(int col, int row, [int? band]) {
     if (isEsriAsc) {
@@ -289,6 +321,33 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
         return _raster!.green!.getInt(col, row);
       } else if (band == 2) {
         return _raster!.blue!.getInt(col, row);
+      }
+      throw StateError("invalid band number");
+    }
+  } */
+  @override
+  int getInt(int col, int row, [int? band]) {
+    if (isEsriAsc) {
+      return dataList[row][col].toInt();
+    } else {
+      if (_raster == null) {
+        throw StateError("raster is null");
+      }
+      if (band == null || band == 0) {
+        return _raster!.data!
+            .getPixel(col, row)
+            .getChannel(Channel.red)
+            .toInt();
+      } else if (band == 1) {
+        return _raster!.data!
+            .getPixel(col, row)
+            .getChannel(Channel.green)
+            .toInt();
+      } else if (band == 2) {
+        return _raster!.data!
+            .getPixel(col, row)
+            .getChannel(Channel.blue)
+            .toInt();
       }
       throw StateError("invalid band number");
     }
@@ -317,7 +376,7 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
     if (_tiffImage != null) {
       var tag = _tiffImage!.tags[key];
       if (tag != null) {
-        return tag.readValues();
+        return GeoTiffEntry(tag).readValues();
       }
     }
     return null;
