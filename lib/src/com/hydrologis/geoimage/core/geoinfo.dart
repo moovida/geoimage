@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:dart_jts/dart_jts.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
+
 import 'geotiffentry.dart';
 
 /// Class to extract geographic information from a [TiffImage].
@@ -108,7 +107,7 @@ class GeoInfo {
         if (modelTiepointTag != null) {
           var modelTiepoint = GeoTiffEntry(modelTiepointTag).read();
           var m01 = 0.0;
-          var m02 = modelTiepoint![3];
+          var m02 = modelTiepoint[3];
           var m10 = 0.0;
           var m12 = modelTiepoint[4];
 

@@ -19,7 +19,7 @@ class GeoimageUtils {
   static const PNG_WLD_EXT = "pgw";
 
   /// Checks if the supplied [path] refers to a [GeoImage] format, basing on the file extension.
-  static bool isGeoImage(String path) {
+  static bool isGeoImage(String? path) {
     return path != null &&
         (isTiff(path) ||
             path.toLowerCase().endsWith(PNG_EXT) ||
@@ -27,7 +27,7 @@ class GeoimageUtils {
   }
 
   /// Checks if the supplied [path] refers to a [GeoRaster] format, basing on the file extension.
-  static bool isGeoRaster(String path) {
+  static bool isGeoRaster(String? path) {
     return path != null && (isTiff(path) || isAsc(path));
   }
 

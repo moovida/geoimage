@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:geoimage/geoimage.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/abstractgeoimage.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/geoinfo.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
+
 import '../geotiffentry.dart';
 
 /// A raster class representing a generic geoimage.
@@ -30,7 +31,6 @@ class GeoImage extends AbstractGeoImage {
       _image = tiffDecoder.decode(_imageBytes);
     } else {
       _image = decodeImage(_imageBytes);
-
     }
     if (_image == null) {
       throw StateError("Unable to decode image.");

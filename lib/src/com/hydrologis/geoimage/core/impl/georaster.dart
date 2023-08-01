@@ -1,11 +1,10 @@
 import 'dart:io';
 
-import 'package:geoimage/geoimage.dart';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/abstractgeoimage.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/geoinfo.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
 import 'package:image/image.dart';
 
-import '../utils.dart';
 import '../geotiffentry.dart';
 
 /// A raster class representing a geoimage containing physical data.

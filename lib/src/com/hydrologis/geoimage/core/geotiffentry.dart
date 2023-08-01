@@ -14,6 +14,7 @@ class GeoTiffEntry {
     }
     return values;
   }
+
   int _readValue() {
     switch (tiffEntry.type) {
       case IfdValueType.byte:
@@ -44,9 +45,12 @@ class GeoTiffEntry {
         throw ImageException('Unhandled value type: FLOAT');
       case IfdValueType.double:
         throw ImageException('Unhandled value type: DOUBLE');
+      case IfdValueType.none:
+        break;
     }
     return 0;
   }
+
   String readString() {
     if (tiffEntry.type != IfdValueType.ascii) {
       throw ImageException('readString requires ASCII entity');
@@ -64,7 +68,7 @@ class GeoTiffEntry {
         case IfdValueType.ascii:
           values.add(tiffEntry.p.readByte());
           break;
-        case IfdValueType.short :
+        case IfdValueType.short:
           values.add(tiffEntry.p.readUint16());
           break;
         case IfdValueType.long:
@@ -82,6 +86,13 @@ class GeoTiffEntry {
           break;
         case IfdValueType.double:
           values.add(tiffEntry.p.readFloat64());
+          break;
+        case IfdValueType.none:
+        case IfdValueType.sByte:
+        case IfdValueType.undefined:
+        case IfdValueType.sShort:
+        case IfdValueType.sLong:
+        case IfdValueType.sRational:
           break;
       }
     }
