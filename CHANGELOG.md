@@ -1,6 +1,10 @@
+## 0.3.0
+
+Migrate to image 4. Thanks to https://github.com/sheldoncoup
+
 ## 0.2.0
 
-MIgrate to null safety.
+Migrate to null safety.
 
 ## 0.1.2
 
