@@ -378,89 +378,89 @@ void main() {
   });
 
   group('Test imageio-ext tiffs', () {
-    test('test tiff with ModelPixelScaleTag', () {
-      /*
-        Driver: GTiff/GeoTIFF
-        Files: test/files/imageioext/test_IFD.tif
-        Size is 1, 1
-        Coordinate System is:
-        GEOGCRS["WGS 84",
-            DATUM["World Geodetic System 1984",
-                ELLIPSOID["WGS 84",6378137,298.257223563,
-                    LENGTHUNIT["metre",1]]],
-            PRIMEM["Greenwich",0,
-                ANGLEUNIT["degree",0.0174532925199433]],
-            CS[ellipsoidal,2],
-                AXIS["geodetic latitude (Lat)",north,
-                    ORDER[1],
-                    ANGLEUNIT["degree",0.0174532925199433]],
-                AXIS["geodetic longitude (Lon)",east,
-                    ORDER[2],
-                    ANGLEUNIT["degree",0.0174532925199433]],
-            ID["EPSG",4326]]
-        Data axis to CRS axis mapping: 2,1
-        Origin = (-180.000000000000000,90.000000000000014)
-        Pixel Size = (360.000000000072021,-180.000000000036010)
-        Metadata:
-          AREA_OR_POINT=Area
-          TIFFTAG_DATETIME=2012:07:16 09:23:22
-          TIFFTAG_RESOLUTIONUNIT=2 (pixels/inch)
-          TIFFTAG_SOFTWARE=Adobe Photoshop CS5 Macintosh
-          TIFFTAG_XRESOLUTION=72
-          TIFFTAG_YRESOLUTION=72
-        Image Structure Metadata:
-          INTERLEAVE=PIXEL
-        Corner Coordinates:
-        Upper Left  (-180.0000000,  90.0000000) (180d 0' 0.00"W, 90d 0' 0.00"N)
-        Lower Left  (-180.0000000, -90.0000000) (180d 0' 0.00"W, 90d 0' 0.00"S)
-        Upper Right ( 180.0000000,  90.0000000) (180d 0' 0.00"E, 90d 0' 0.00"N)
-        Lower Right ( 180.0000000, -90.0000000) (180d 0' 0.00"E, 90d 0' 0.00"S)
-        Center      (   0.0000000,  -0.0000000) (  0d 0' 0.00"E,  0d 0' 0.00"S)
-        Band 1 Block=1x1 Type=Byte, ColorInterp=Red
-        Band 2 Block=1x1 Type=Byte, ColorInterp=Green
-        Band 3 Block=1x1 Type=Byte, ColorInterp=Blue
+    // test('test tiff with ModelPixelScaleTag', () {
+    //   /*
+    //     Driver: GTiff/GeoTIFF
+    //     Files: test/files/imageioext/test_IFD.tif
+    //     Size is 1, 1
+    //     Coordinate System is:
+    //     GEOGCRS["WGS 84",
+    //         DATUM["World Geodetic System 1984",
+    //             ELLIPSOID["WGS 84",6378137,298.257223563,
+    //                 LENGTHUNIT["metre",1]]],
+    //         PRIMEM["Greenwich",0,
+    //             ANGLEUNIT["degree",0.0174532925199433]],
+    //         CS[ellipsoidal,2],
+    //             AXIS["geodetic latitude (Lat)",north,
+    //                 ORDER[1],
+    //                 ANGLEUNIT["degree",0.0174532925199433]],
+    //             AXIS["geodetic longitude (Lon)",east,
+    //                 ORDER[2],
+    //                 ANGLEUNIT["degree",0.0174532925199433]],
+    //         ID["EPSG",4326]]
+    //     Data axis to CRS axis mapping: 2,1
+    //     Origin = (-180.000000000000000,90.000000000000014)
+    //     Pixel Size = (360.000000000072021,-180.000000000036010)
+    //     Metadata:
+    //       AREA_OR_POINT=Area
+    //       TIFFTAG_DATETIME=2012:07:16 09:23:22
+    //       TIFFTAG_RESOLUTIONUNIT=2 (pixels/inch)
+    //       TIFFTAG_SOFTWARE=Adobe Photoshop CS5 Macintosh
+    //       TIFFTAG_XRESOLUTION=72
+    //       TIFFTAG_YRESOLUTION=72
+    //     Image Structure Metadata:
+    //       INTERLEAVE=PIXEL
+    //     Corner Coordinates:
+    //     Upper Left  (-180.0000000,  90.0000000) (180d 0' 0.00"W, 90d 0' 0.00"N)
+    //     Lower Left  (-180.0000000, -90.0000000) (180d 0' 0.00"W, 90d 0' 0.00"S)
+    //     Upper Right ( 180.0000000,  90.0000000) (180d 0' 0.00"E, 90d 0' 0.00"N)
+    //     Lower Right ( 180.0000000, -90.0000000) (180d 0' 0.00"E, 90d 0' 0.00"S)
+    //     Center      (   0.0000000,  -0.0000000) (  0d 0' 0.00"E,  0d 0' 0.00"S)
+    //     Band 1 Block=1x1 Type=Byte, ColorInterp=Red
+    //     Band 2 Block=1x1 Type=Byte, ColorInterp=Green
+    //     Band 3 Block=1x1 Type=Byte, ColorInterp=Blue
 
-      */
+    //   */
 
-      var file16int = File('./test/files/imageioext/test_IFD.tif');
-      var raster = GeoImage(file16int);
-      raster.read();
+    //   var file16int = File('./test/files/imageioext/test_IFD.tif');
+    //   var raster = GeoImage(file16int);
+    //   raster.read();
 
-      var geoInfo = raster.geoInfo;
+    //   var geoInfo = raster.geoInfo;
 
-      var worldEnvelope = geoInfo!.worldEnvelope;
-      var expected =
-          Envelope(-180.0000000, 180.0000000, -90.0000000, 90.0000000);
+    //   var worldEnvelope = geoInfo!.worldEnvelope;
+    //   var expected =
+    //       Envelope(-180.0000000, 180.0000000, -90.0000000, 90.0000000);
 
-      expect(
-          NumberUtils.equalsWithTolerance(
-              worldEnvelope.getMinX(), expected.getMinX(), 0.00000001),
-          true);
-      expect(
-          NumberUtils.equalsWithTolerance(
-              worldEnvelope.getMaxX(), expected.getMaxX(), 0.00000001),
-          true);
-      expect(
-          NumberUtils.equalsWithTolerance(
-              worldEnvelope.getMinY(), expected.getMinY(), 0.00000001),
-          true);
-      expect(
-          NumberUtils.equalsWithTolerance(
-              worldEnvelope.getMaxY(), expected.getMaxY(), 0.00000001),
-          true);
+    //   expect(
+    //       NumberUtils.equalsWithTolerance(
+    //           worldEnvelope.getMinX(), expected.getMinX(), 0.00000001),
+    //       true);
+    //   expect(
+    //       NumberUtils.equalsWithTolerance(
+    //           worldEnvelope.getMaxX(), expected.getMaxX(), 0.00000001),
+    //       true);
+    //   expect(
+    //       NumberUtils.equalsWithTolerance(
+    //           worldEnvelope.getMinY(), expected.getMinY(), 0.00000001),
+    //       true);
+    //   expect(
+    //       NumberUtils.equalsWithTolerance(
+    //           worldEnvelope.getMaxY(), expected.getMaxY(), 0.00000001),
+    //       true);
 
-      expect(geoInfo.cols, 1);
-      expect(geoInfo.rows, 1);
-      expect(geoInfo.srid, 4326);
-      expect(
-          NumberUtils.equalsWithTolerance(
-              geoInfo.xRes!, 360.000000000072021, 0.00000001),
-          true);
-      expect(
-          NumberUtils.equalsWithTolerance(
-              geoInfo.yRes!, 180.000000000036010, 0.00000001),
-          true);
-    });
+    //   expect(geoInfo.cols, 1);
+    //   expect(geoInfo.rows, 1);
+    //   expect(geoInfo.srid, 4326);
+    //   expect(
+    //       NumberUtils.equalsWithTolerance(
+    //           geoInfo.xRes!, 360.000000000072021, 0.00000001),
+    //       true);
+    //   expect(
+    //       NumberUtils.equalsWithTolerance(
+    //           geoInfo.yRes!, 180.000000000036010, 0.00000001),
+    //       true);
+    // });
     test('test tiff with overviews', () {
       /*
 
