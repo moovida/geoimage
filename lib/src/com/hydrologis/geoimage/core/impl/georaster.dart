@@ -222,7 +222,7 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
   //int? get bands => _raster?.numberOfChannels;
 
   @override
-  void loopWithFloatValue(Function colRowValueFunction) {
+  void loopWithDoubleValue(Function colRowValueFunction) {
     if (_rows == null || _cols == null) {
       throw StateError("rows and cols are null");
     }
@@ -256,7 +256,6 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
       }
     }
   }
-  /*
 
   @override
   double getDouble(int col, int row, [int? band]) {
@@ -267,45 +266,16 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
         throw StateError("raster is null");
       }
       if (band == null || band == 0) {
-        return _raster!.red!.getFloat(col, row);
+        return _raster!.data!.getPixel(col, row).r.toDouble();
       } else if (band == 1) {
-        return _raster!.green!.getFloat(col, row);
+        return _raster!.data!.getPixel(col, row).g.toDouble();
       } else if (band == 2) {
-        return _raster!.blue!.getFloat(col, row);
-      }
-      throw StateError("invalid band number");
-    }
-  } */
-
-  @override
-  double getDouble(int col, int row, [int? band]) {
-    if (isEsriAsc) {
-      return dataList[row][col].toDouble();
-    } else {
-      if (_raster == null) {
-        throw StateError("raster is null");
-      }
-      if (band == null || band == 0) {
-        return _raster!.data!
-            .getPixel(col, row)
-            .getChannel(Channel.red)
-            .toDouble();
-      } else if (band == 1) {
-        return _raster!.data!
-            .getPixel(col, row)
-            .getChannel(Channel.green)
-            .toDouble();
-      } else if (band == 2) {
-        return _raster!.data!
-            .getPixel(col, row)
-            .getChannel(Channel.blue)
-            .toDouble();
+        return _raster!.data!.getPixel(col, row).b.toDouble();
       }
       throw StateError("invalid band number");
     }
   }
 
-  /*
   @override
   int getInt(int col, int row, [int? band]) {
     if (isEsriAsc) {
@@ -315,38 +285,11 @@ NODATA_value  ${_geoInfo!.noValue}\n""";
         throw StateError("raster is null");
       }
       if (band == null || band == 0) {
-        return _raster!.red!.getInt(col, row);
+        return _raster!.data!.getPixel(col, row).r.toInt();
       } else if (band == 1) {
-        return _raster!.green!.getInt(col, row);
+        return _raster!.data!.getPixel(col, row).g.toInt();
       } else if (band == 2) {
-        return _raster!.blue!.getInt(col, row);
-      }
-      throw StateError("invalid band number");
-    }
-  } */
-  @override
-  int getInt(int col, int row, [int? band]) {
-    if (isEsriAsc) {
-      return dataList[row][col].toInt();
-    } else {
-      if (_raster == null) {
-        throw StateError("raster is null");
-      }
-      if (band == null || band == 0) {
-        return _raster!.data!
-            .getPixel(col, row)
-            .getChannel(Channel.red)
-            .toInt();
-      } else if (band == 1) {
-        return _raster!.data!
-            .getPixel(col, row)
-            .getChannel(Channel.green)
-            .toInt();
-      } else if (band == 2) {
-        return _raster!.data!
-            .getPixel(col, row)
-            .getChannel(Channel.blue)
-            .toInt();
+        return _raster!.data!.getPixel(col, row).b.toInt();
       }
       throw StateError("invalid band number");
     }

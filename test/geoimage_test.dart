@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dart_jts/dart_jts.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/geoimage.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/impl/georaster.dart';
 import 'package:geoimage/src/com/hydrologis/geoimage/core/utils.dart';
+import 'package:image/image.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -152,7 +154,7 @@ void main() {
       var file32bit = File('./test/files/dtm32float.tiff');
       var raster = GeoRaster(file32bit);
       raster.read();
-      raster.loopWithFloatValue((col, row, value) {
+      raster.loopWithDoubleValue((col, row, value) {
         expect(value, mapData[row][col]);
       });
     });
@@ -224,7 +226,7 @@ void main() {
 
       expect(null, raster.geoInfo!.noValue);
 
-      raster.loopWithFloatValue((col, row, value) {
+      raster.loopWithDoubleValue((col, row, value) {
         expect(value, mapData[row][col]);
       });
     });
@@ -743,7 +745,92 @@ void main() {
   //     outAspect.write("/Users/hydrologis/TMP/HORTONTESTS/testaspect.asc");
   //   });
   // });
+
+  group('image tests', () {
+    test('color to alpha', () async {
+      var imgfile = File('./test/files/img/blackred2x2.png');
+
+      var image = await ImageUtilities.imageFromFile(imgfile.path);
+      var newImage = ImageUtilities.colorToAlpha(image!, 0, 0, 0);
+
+      // var newImage = decodeImage(newBytes);
+      var newPixels = newImage.getBytes(order: ChannelOrder.rgba);
+
+      //check changed alpha
+      expect(newPixels[3], 0);
+      expect(newPixels[7], 255);
+      expect(newPixels[11], 255);
+      expect(newPixels[15], 0);
+    });
+  });
+
+  group('singleband image tests', () {
+    test('dtm test', () async {
+      var imgfile = File('./test/files/singleband/dtm_test.tiff');
+      var bytes = ImageUtilities.bytesFromImageFile(imgfile.path);
+
+      var image = TiffDecoder().decode(Uint8List.fromList(bytes));
+      expect(image!.width, 10);
+      expect(image.height, 8);
+
+      for (var row = 0; row < image.height; row++) {
+        for (var col = 0; col < image.width; col++) {
+          var redValue = image.data!.getPixel(col, row).r.toDouble();
+          if (redValue == -10000.0) {
+            // the image library doesn't read the novalue properly
+            // for now ignore it
+            continue;
+          }
+          expect(redValue, expectedSingleBandData[row][col]);
+        }
+      }
+    });
+  });
 }
+
+var expectedSingleBandData = [
+  [
+    800.0,
+    900.0,
+    1000.0,
+    1000.0,
+    1200.0,
+    1250.0,
+    1300.0,
+    1350.0,
+    1450.0,
+    1500.0
+  ],
+  [
+    600.0,
+    -9999.0,
+    750.0,
+    850.0,
+    860.0,
+    900.0,
+    1000.0,
+    1200.0,
+    1250.0,
+    1500.0
+  ], //
+  [500.0, 550.0, 700.0, 750.0, 800.0, 850.0, 900.0, 1000.0, 1100.0, 1500.0], //
+  [400.0, 410.0, 650.0, 700.0, 750.0, 800.0, 850.0, 490.0, 450.0, 1500.0], //
+  [450.0, 550.0, 430.0, 500.0, 600.0, 700.0, 800.0, 500.0, 450.0, 1500.0], //
+  [500.0, 600.0, 700.0, 750.0, 760.0, 770.0, 850.0, 1000.0, 1150.0, 1500.0], //
+  [600.0, 700.0, 750.0, 800.0, 780.0, 790.0, 1000.0, 1100.0, 1250.0, 1500.0], //
+  [
+    800.0,
+    910.0,
+    980.0,
+    1001.0,
+    1150.0,
+    1200.0,
+    1250.0,
+    1300.0,
+    1450.0,
+    1500.0
+  ], //
+];
 
 const ND = GeoimageUtils.doubleNovalue;
 const NI = GeoimageUtils.intNovalue;

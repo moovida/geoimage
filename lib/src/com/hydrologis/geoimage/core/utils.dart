@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'package:geoimage/src/com/hydrologis/geoimage/core/abstractgeoimage.dart';
+import 'package:image/image.dart';
 import 'package:path/path.dart' as p;
-
-import 'package:geoimage/geoimage.dart';
 
 class GeoimageUtils {
   static const doubleNovalue = -9999.0;
@@ -338,5 +339,166 @@ class NumericsUtilities {
   static double normalize(
       double max, double min, double value, double normMax) {
     return normMax / (1 + ((max - value) / (value - min)));
+  }
+}
+
+/*
+ * Copyright (c) 2019-2020. Antonello Andrea (www.hydrologis.com). All rights reserved.
+ * Use of this source code is governed by a BSD 3 license that can be
+ * found in the LICENSE file.
+ */
+
+/// Image utilities
+class ImageUtilities {
+  static Image? imageFromBytes(Uint8List bytes) {
+    Image? image = decodeImage(bytes);
+    return image;
+  }
+
+//  static void imageBytes2File(File file, List<int> bytes) {
+//    Image img = imageFromBytes(bytes);
+//
+//    writeJpg(img)
+//
+//  }
+
+  static List<int> bytesFromImageFile(String path) {
+    File imgFile = File(path);
+    return imgFile.readAsBytesSync();
+  }
+
+  static Future<Image?> imageFromFile(String path) async {
+    return decodeImageFile(path);
+  }
+
+  static List<int> resizeImage(Uint8List bytes,
+      {int newWidth = 100, int? longestSizeTo}) {
+    Image image = decodeWithCheck(bytes);
+
+    Image thumbnail;
+    if (longestSizeTo != null) {
+      if (image.width > image.height) {
+        thumbnail = copyResize(
+          image,
+          width: longestSizeTo,
+        );
+      } else {
+        thumbnail = copyResize(
+          image,
+          height: longestSizeTo,
+        );
+      }
+    } else {
+      thumbnail = copyResize(
+        image,
+        width: newWidth,
+      );
+    }
+    var encoded = encodeJpg(thumbnail);
+    return encoded;
+  }
+
+  static Image decodeWithCheck(Uint8List bytes) {
+    Image? image = decodeImage(bytes);
+    // image.set
+    if (image == null) {
+      throw StateError("No image can be decoded from input data.");
+    }
+    return image;
+  }
+
+  /// Makes pixels of the [image] transparent if color is defined as [r], [g], [b].
+  ///
+  /// returns an image, yet to be encoded.
+  static Image colorToAlpha(Image image, int r, int g, int b) {
+    if (image.numChannels == 3) {
+      image = image.convert(numChannels: 4);
+    }
+    var data = image.data!;
+    for (var row = 0; row < data.height; row = row + 1) {
+      for (var col = 0; col < data.width; col = col + 1) {
+        var p = data.getPixel(col, row);
+        if (p.r.toInt() == r && p.g.toInt() == g && p.b.toInt() == b) {
+          p.setRgba(r, g, b, 0);
+        }
+      }
+    }
+    return image;
+    // for (var i = 0; i < length; i = i + 4) {
+    //   if (pixels[i] == r && pixels[i + 1] == g && pixels[i + 2] == b) {
+    //     pixels[i + 3] = 0;
+    //   }
+    // }
+    // set the fact that it now has an alpha channel, else it will not work if prior rgb
+    // image.channels = Channels.rgba;
+  }
+
+  /// Removes the given color as solid background from the image.
+  static void colorToAlphaBlend(
+      Image image, int redToHide, int greenToHide, int blueToHide) {
+    Uint8List pixels = image.getBytes(order: ChannelOrder.rgba);
+    final length = pixels.lengthInBytes;
+    for (var i = 0; i < length; i = i + 4) {
+      c2a(pixels, i, redToHide, greenToHide, blueToHide);
+    }
+    // set the fact that it now has an alpha channel, else it will not work if prior rgb
+    // image.channels = Channels.rgba;
+  }
+
+  static void c2a(Uint8List pixels, int index, int redToHide, int greenToHide,
+      int blueToHide) {
+    int red = pixels[index];
+    int green = pixels[index + 1];
+    int blue = pixels[index + 2];
+    double alpha = pixels[index + 3].toDouble();
+
+    double a4 = alpha;
+
+    double a1 = 0.0;
+    if (red > redToHide) {
+      a1 = (red - redToHide) / (255.0 - redToHide);
+    } else if (red < redToHide) {
+      a1 = (redToHide - red) / (redToHide);
+    }
+    double a2 = 0.0;
+    if (green > greenToHide) {
+      a2 = (green - greenToHide) / (255.0 - greenToHide);
+    } else if (green < greenToHide) {
+      a2 = (greenToHide - green) / (greenToHide);
+    }
+    double a3 = 0.0;
+    if (blue > blueToHide) {
+      a3 = (blue - blueToHide) / (255.0 - blueToHide);
+    } else if (blue < blueToHide) {
+      a3 = (blueToHide - blue) / (blueToHide);
+    }
+
+    if (a1 > a2) {
+      if (a1 > a3) {
+        alpha = a1;
+      } else {
+        alpha = a3;
+      }
+    } else {
+      if (a2 > a3) {
+        alpha = a2;
+      } else {
+        alpha = a3;
+      }
+    }
+
+    alpha *= 255.0;
+
+    if (alpha >= 1.0) {
+      red = (255.0 * (red - redToHide) / alpha + redToHide).toInt();
+      green = (255.0 * (green - greenToHide) / alpha + greenToHide).toInt();
+      blue = (255.0 * (blue - blueToHide) / alpha + blueToHide).toInt();
+
+      alpha *= a4 / 255.0;
+    }
+    pixels[index] = red;
+    pixels[index + 1] = green;
+    pixels[index + 2] = blue;
+    pixels[index + 3] = alpha.toInt();
   }
 }

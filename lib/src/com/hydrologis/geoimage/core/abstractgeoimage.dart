@@ -46,7 +46,7 @@ abstract class AbstractGeoRaster extends AbstractGeoImage {
   ///   ...processing goes in here
   /// }
   ///
-  void loopWithFloatValue(Function colRowValueFunction);
+  void loopWithDoubleValue(Function colRowValueFunction);
 
   /// Loop over a raster using a function of type:
   /// (col, row, intvalue) {
