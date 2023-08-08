@@ -1,3 +1,7 @@
+## 0.4.0
+
+Add color utilities and fix some api changes.
+
 ## 0.3.0
 
 Migrate to image 4. Thanks to https://github.com/sheldoncoup
