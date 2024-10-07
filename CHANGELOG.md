@@ -1,3 +1,7 @@
+## 0.4.1
+
+Fix image version due to regression bug.
+
 ## 0.4.0
 
 Add color utilities and fix some api changes.
