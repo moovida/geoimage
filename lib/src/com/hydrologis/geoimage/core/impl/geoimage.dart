@@ -26,6 +26,7 @@ class GeoImage extends AbstractGeoImage {
     _imageBytes = _file.readAsBytesSync();
     TiffDecoder? tiffDecoder;
     if (GeoimageUtils.isTiff(_file.path)) {
+      _image = decodeTiff(_imageBytes);
       tiffDecoder = TiffDecoder();
       //_image = tiffDecoder.decodeImage(_imageBytes);
       _image = tiffDecoder.decode(_imageBytes);

@@ -680,6 +680,15 @@ void main() {
       expect(geoInfoJpg.worldEnvelope == geoInfoTiff.worldEnvelope, true);
       expect(geoInfoJpg.prjWkt == geoInfoTiff.prjWkt, true);
     });
+
+    test('test tif dem', () {
+      // THIS FAILS WITH image VERSION 4.2.0
+
+      var tiffFile = File('./test/files/testtiff.tif');
+      var rasterTiff = GeoImage(tiffFile);
+      rasterTiff.read();
+      // var geoInfoTiff = rasterTiff.geoInfo!;
+    });
   });
   group('Test esri ascii grid', () {
     test('test asc io', () {
