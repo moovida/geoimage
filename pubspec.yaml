@@ -12,10 +12,10 @@ dependencies:
   dart_jts: ^0.3.0+1
 
   # Apache 2.0
-  image: #4.1.7 # stay stick until issue #680 is resolved
-    git:
-      url: https://github.com/brendan-duncan/image.git
-      ref: 85b6b14521ceb9d25100cb34ab954d3eb98afdd2
+  image: ^4.5.4
+    # git:
+    #   url: https://github.com/brendan-duncan/image.git
+    #   ref: 85b6b14521ceb9d25100cb34ab954d3eb98afdd2
 
 
 
